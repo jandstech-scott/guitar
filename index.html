@@ -38,7 +38,6 @@
     }
     .pill b { font-weight: 700; color: #1a1a1a; }
     #mastered-pill { background: #E1F5EE; border-color: #1D9E75; color: #085041; }
-    #mode-pill-quiz { background: #E6F1FB; border-color: #185FA5; color: #0C447C; }
     #mode-pill-practice { background: #EEEDFE; border-color: #534AB7; color: #3C3489; display: none; }
     .txt-btn {
       font-size: 12px; background: none; border: none; cursor: pointer;
@@ -149,7 +148,6 @@
     }
     .seg-btn.study-sel { background: #FAEEDA; color: #633806; }
     .seg-btn.practice-sel { background: #EEEDFE; color: #3C3489; }
-    .seg-btn.quiz-sel { background: #E6F1FB; color: #0C447C; }
     .seg-btn + .seg-btn { border-left: 1px solid #e2e2de; }
 
     .exp-card {
@@ -247,7 +245,6 @@
       .seg-btn { background: #232323 !important; color: #999 !important; }
       .seg-btn.study-sel { background: #271900 !important; color: #FAC775 !important; }
       .seg-btn.practice-sel { background: #1a1840 !important; color: #AFA9EC !important; }
-      .seg-btn.quiz-sel { background: #0c1e30 !important; color: #85B7EB !important; }
       .exp-card { background: #232323 !important; border-color: #333 !important; color: #f0f0f0 !important; }
       .exp-card.selected { background: #0a2e22 !important; border-color: #1D9E75 !important; }
       .exp-card-desc { color: #999 !important; }
@@ -260,7 +257,6 @@
       .sum-table td { border-color: #2a2a2a !important; color: #f0f0f0; }
       #study-view { background: #181818 !important; }
       #mastered-pill { background: #0a2e22 !important; color: #9FE1CB !important; border-color: #1D9E75 !important; }
-      #mode-pill-quiz { background: #0c1e30 !important; color: #85B7EB !important; }
       #mode-pill-practice { background: #1a1840 !important; color: #AFA9EC !important; }
       #prog-bg { background: #333 !important; }
       .pill { background: #232323 !important; border-color: #333 !important; color: #999 !important; }
@@ -278,7 +274,6 @@
     <div class="pill"><b id="s-acc">—</b> acc</div>
     <div class="pill"><b id="s-streak">0</b> streak</div>
     <div class="pill" id="mastered-pill"><b id="s-mastered">0</b>/126</div>
-    <div class="pill" id="mode-pill-quiz">Quiz</div>
     <div class="pill" id="mode-pill-practice">Practice</div>
     <div class="pill" id="exp-pill">Intermediate</div>
     <button id="pause-btn" onclick="togglePause()">⏸ Pause</button>
@@ -351,7 +346,6 @@
     <div class="seg">
       <button class="seg-btn study-sel" id="seg-study" onclick="selectQuizMode('study')">Study</button>
       <button class="seg-btn" id="seg-practice" onclick="selectQuizMode('practice')">Practice</button>
-      <button class="seg-btn" id="seg-quiz" onclick="selectQuizMode('quiz')">Quiz</button>
     </div>
     <div id="practice-filters" style="display:none;">
       <div class="sec-lbl">Strings</div>
@@ -369,7 +363,7 @@
       </div>
     </div>
     <div class="sec-lbl">Accidentals</div>
-    <div class="tog-grid cols4" id="acc-btns" style="margin-bottom:1rem;"></div>
+    <div class="tog-grid cols3" id="acc-btns" style="margin-bottom:1rem;"></div>
     <div class="sec-lbl" id="exp-section-lbl">Experience level</div>
     <div class="exp-card" id="mc-beginner" onclick="selectExp('beginner')">
       <div class="exp-card-title">Beginner</div>
@@ -467,7 +461,7 @@ const STRING_OPEN=[4,11,7,2,9,4];
 const STRING_NAMES=['e (1st)','B (2nd)','G (3rd)','D (4th)','A (5th)','E (6th)'];
 const MAX_FRET=20;
 const NECK_ASPECT=6.5;
-const SAVE_KEY='gtr_v6';
+const SAVE_KEY='gtr_v8';
 const EXP={
   beginner:    {label:'Beginner',    tFast:10000,tSlow:20000,mastery:3},
   intermediate:{label:'Intermediate',tFast:5000, tSlow:12000,mastery:4},
@@ -492,14 +486,14 @@ function makeKnowledge(){
 function makeState(){return{knowledge:makeKnowledge(),totalAsked:0,totalCorrect:0,totalTime:0,currentStreak:0};}
 
 /* ── state ── */
-let quizMode='practice';
-let expLevel='intermediate';
+var quizMode='study';
+let expLevel='beginner';
 let practiceStrings=new Set([0,1,2,3,4,5]);
 let practiceFretMin=0,practiceFretMax=MAX_FRET;
-let accidentalMode='sharps';
+let accidentalMode='NSF';
 let perQuestionSpelling='sharp';
-let states={quiz:makeState(),practice:makeState()};
-function st(){return states[quizMode==='study'?'practice':quizMode];}
+let states={practice:makeState()};
+function st(){return states['practice'];}
 function T_FAST(){return EXP[expLevel].tFast;}
 function T_SLOW(){return EXP[expLevel].tSlow;}
 function MASTERY(){return EXP[expLevel].mastery;}
@@ -508,8 +502,8 @@ let answered=false,currentKey=null;
 let lastRevealNote=null,lastRevealWrong=false;
 let timerInterval=null,questionStart=0,pausedAt=0,paused=false;
 let autoAdvanceTimer=null;
-let pendingQuizMode='practice',pendingExp='intermediate',pendingStrings=[0,1,2,3,4,5];
-let pendingFretMin=0,pendingFretMax=MAX_FRET,pendingAccidental='sharps';
+let pendingQuizMode='study',pendingExp='beginner',pendingStrings=[0,1,2,3,4,5];
+let pendingFretMin=0,pendingFretMax=MAX_FRET,pendingAccidental='NSF';
 
 /* ── persist ── */
 function save(){
@@ -519,8 +513,7 @@ function save(){
       practiceStrings:[...practiceStrings],
       practiceFretMin,practiceFretMax,
       states:{
-        quiz:{totalAsked:states.quiz.totalAsked,totalCorrect:states.quiz.totalCorrect,totalTime:states.quiz.totalTime,currentStreak:states.quiz.currentStreak,knowledge:states.quiz.knowledge},
-        practice:{totalAsked:states.practice.totalAsked,totalCorrect:states.practice.totalCorrect,totalTime:states.practice.totalTime,currentStreak:states.practice.currentStreak,knowledge:states.practice.knowledge}
+practice:{totalAsked:states.practice.totalAsked,totalCorrect:states.practice.totalCorrect,totalTime:states.practice.totalTime,currentStreak:states.practice.currentStreak,knowledge:states.practice.knowledge}
       }
     }));
   }catch(e){}
@@ -537,7 +530,7 @@ function save(){
     practiceStrings=new Set(d.practiceStrings||[0,1,2,3,4,5]);
     practiceFretMin=d.practiceFretMin||0;
     practiceFretMax=d.practiceFretMax!=null?d.practiceFretMax:MAX_FRET;
-    ['quiz','practice'].forEach(function(m){
+    ['practice'].forEach(function(m){
       if(d.states&&d.states[m]){
         var ds=d.states[m];
         states[m].totalAsked=ds.totalAsked||0;
@@ -556,15 +549,52 @@ function save(){
   }catch(e){}
 })();
 
-/* ── accidentals ── */
-function notePool(){
-  if(accidentalMode==='flats')return NOTES_FLAT;
-  if(accidentalMode==='both')return perQuestionSpelling==='flat'?NOTES_FLAT:NOTES_SHARP;
-  return NOTES_SHARP;
-}
+/* ── accidentals ──
+   accidentalMode is a string encoding which note types are active:
+   'N'   = naturals only
+   'S'   = sharps only
+   'F'   = flats only
+   'NS'  = naturals + sharps
+   'NF'  = naturals + flats
+   'NSF' = all notes
+*/
+var ACC_TOGGLES=[{key:'N',label:'Naturals'},{key:'S',label:'Sharps'},{key:'F',label:'Flats'}];
+
+function accHasNaturals(m){return m.indexOf('N')>=0;}
+function accHasSharps(m)  {return m.indexOf('S')>=0;}
+function accHasFlats(m)   {return m.indexOf('F')>=0;}
+
 function idxAllowed(idx){
-  if(accidentalMode==='none')return NATURAL_IDX.indexOf(idx)>=0;
-  return true;
+  var isNat=NATURAL_IDX.indexOf(idx)>=0;
+  if(isNat) return accHasNaturals(accidentalMode);
+  /* accidental note — allowed if sharps or flats enabled */
+  return accHasSharps(accidentalMode)||accHasFlats(accidentalMode);
+}
+
+/* pick spelling for a single accidental note based on mode */
+function spellNote(idx){
+  var isNat=NATURAL_IDX.indexOf(idx)>=0;
+  if(isNat) return NOTES_SHARP[idx]; /* naturals same in both arrays */
+  /* accidental: pick based on what's enabled, or per-question spelling if both */
+  if(accHasSharps(accidentalMode)&&!accHasFlats(accidentalMode)) return NOTES_SHARP[idx];
+  if(accHasFlats(accidentalMode)&&!accHasSharps(accidentalMode)) return NOTES_FLAT[idx];
+  /* both enabled — use per-question spelling */
+  return perQuestionSpelling==='flat'?NOTES_FLAT[idx]:NOTES_SHARP[idx];
+}
+
+function notePool(){
+  /* returns array of display names for all 12 chromatic positions */
+  var pool=[];
+  for(var i=0;i<12;i++){
+    var isNat=NATURAL_IDX.indexOf(i)>=0;
+    if(isNat){pool.push(NOTES_SHARP[i]);}
+    else{
+      if(accHasSharps(accidentalMode)&&!accHasFlats(accidentalMode)) pool.push(NOTES_SHARP[i]);
+      else if(accHasFlats(accidentalMode)&&!accHasSharps(accidentalMode)) pool.push(NOTES_FLAT[i]);
+      else pool.push(perQuestionSpelling==='flat'?NOTES_FLAT[i]:NOTES_SHARP[i]);
+    }
+  }
+  return pool;
 }
 function chromIdx(s,f){return(STRING_OPEN[s]+f)%12;}
 
@@ -736,8 +766,9 @@ function renderQuestion(){
   document.getElementById('pause-cover').classList.remove('show');
   document.getElementById('answer-row').style.pointerEvents='';
   document.getElementById('answer-row').style.opacity='';
-  if(accidentalMode==='both')perQuestionSpelling=Math.random()<0.5?'sharp':'flat';
-  else if(accidentalMode==='flats')perQuestionSpelling='flat';
+  /* pick spelling for this question when both sharps and flats are enabled */
+  if(accHasSharps(accidentalMode)&&accHasFlats(accidentalMode)) perQuestionSpelling=Math.random()<0.5?'sharp':'flat';
+  else if(accHasFlats(accidentalMode)) perQuestionSpelling='flat';
   else perQuestionSpelling='sharp';
   currentKey=pickQuestion();
   var kn=st().knowledge[currentKey];
@@ -828,8 +859,6 @@ function updateTopBar(){
   el=document.getElementById('s-streak');if(el)el.textContent=s.currentStreak;
   el=document.getElementById('mastered-pill');if(el)el.innerHTML='<b>'+m+'</b>/'+tot;
   el=document.getElementById('prog-fill');if(el)el.style.width=Math.round(m/Math.max(1,tot)*100)+'%';
-  el=document.getElementById('mode-pill-quiz');if(el)el.style.display=quizMode==='quiz'?'':'none';
-  el=document.getElementById('mode-pill-practice');if(el)el.style.display=quizMode==='practice'?'':'none';
   el=document.getElementById('exp-pill');if(el)el.textContent=EXP[expLevel].label;
   el=document.getElementById('summary-btn');if(el)el.style.display=s.totalAsked>0?'':'none';
   } catch(e) { alert('updateTopBar ERROR: '+e.message); }
@@ -866,7 +895,6 @@ function hideSettings(){
 function refreshSettingsUI(){
   document.getElementById('seg-study').className='seg-btn'+(pendingQuizMode==='study'?' study-sel':'');
   document.getElementById('seg-practice').className='seg-btn'+(pendingQuizMode==='practice'?' practice-sel':'');
-  document.getElementById('seg-quiz').className='seg-btn'+(pendingQuizMode==='quiz'?' quiz-sel':'');
   var showFilters=pendingQuizMode==='practice'||pendingQuizMode==='study';
   document.getElementById('practice-filters').style.display=showFilters?'block':'none';
   var isStudy=pendingQuizMode==='study';
@@ -912,16 +940,21 @@ function buildStringButtons(){
 
 function buildAccidentalButtons(){
   var wrap=document.getElementById('acc-btns');wrap.innerHTML='';
-  [['none','Naturals'],['sharps','Sharps'],['flats','Flats'],['both','Both']].forEach(function(pair){
-    var val=pair[0],label=pair[1];
-    var on=pendingAccidental===val;
+  ACC_TOGGLES.forEach(function(t){
+    var on=pendingAccidental.indexOf(t.key)>=0;
     var btn=document.createElement('button');
-    btn.textContent=label;btn.setAttribute('style',on?ON_STYLE:OFF_STYLE);
+    btn.textContent=t.label;btn.setAttribute('style',on?ON_STYLE:OFF_STYLE);
     btn.addEventListener('click',function(){
-      pendingAccidental=val;
-      var all=wrap.querySelectorAll('button');
-      for(var i=0;i<all.length;i++)all[i].setAttribute('style',OFF_STYLE);
-      btn.setAttribute('style',ON_STYLE);
+      var cur=pendingAccidental;
+      if(cur.indexOf(t.key)>=0){
+        var next=cur.replace(t.key,'');
+        if(next.length===0)return; /* must keep at least one */
+        pendingAccidental=next;
+        btn.setAttribute('style',OFF_STYLE);
+      } else {
+        pendingAccidental=cur+t.key;
+        btn.setAttribute('style',ON_STYLE);
+      }
     });
     wrap.appendChild(btn);
   });
@@ -989,7 +1022,7 @@ function drawStudyFretboard(activeStrings,fMin,fMax){
   var outer=document.getElementById('study-fb-outer');
   var canvas=document.getElementById('study-canvas');
   var dark=isDark();
-  var pool=accidentalMode==='flats'?NOTES_FLAT:NOTES_SHARP;
+  var pool=accidentalMode==='F'?NOTES_FLAT:NOTES_SHARP; /* fallback; spellNote used per-dot */
   var aW=outer.clientWidth-8;
   if(aW<=10) aW=window.innerWidth-8;
   var cW=Math.max(200,Math.floor(aW));
@@ -1028,31 +1061,13 @@ function drawStudyFretboard(activeStrings,fMin,fMax){
     ctx.fillStyle=activeStrings.indexOf(s2)>=0?lc:(dark?'#333':'#ddd');
     ctx.fillText(s2+1,PL-5,PT+s2*sh);
   }
-  /* dim inactive zones */
-  var dimBg=dark?'rgba(0,0,0,0.5)':'rgba(242,242,238,0.72)';
-  ctx.fillStyle=dimBg;
-  for(var s3=0;s3<6;s3++){
-    var inStr=activeStrings.indexOf(s3)>=0;
-    var rowTop=s3===0?PT:PT+s3*sh-sh*0.5;
-    var rowBot=s3===5?PT+5*sh:PT+s3*sh+sh*0.5;
-    var rowH=rowBot-rowTop;
-    if(!inStr){
-      ctx.fillRect(PL,rowTop,FRETS*fw,rowH);
-    }else{
-      for(var f2=0;f2<=FRETS;f2++){
-        if(f2>=fMin&&f2<=fMax)continue;
-        var sx=f2===0?PL:PL+(f2-1)*fw;
-        ctx.fillRect(sx,rowTop,fw,rowH);
-      }
-    }
-  }
   /* note dots */
   var hr=Math.max(7,Math.min(sh*0.44,fw*0.36));
   activeStrings.forEach(function(s){
     for(var f=fMin;f<=fMax;f++){
       var idx=chromIdx(s,f);
       if(!idxAllowed(idx))continue;
-      var name=pool[idx];
+      var name=spellNote(idx);
       var isAcc=ACCIDENTAL_IDX.indexOf(idx)>=0;
       var nx=f===0?PL:PL+(f-0.5)*fw;
       var ny=PT+s*sh;
@@ -1071,13 +1086,13 @@ function drawStudyFretboard(activeStrings,fMin,fMax){
   document.getElementById('study-legend').innerHTML=
     '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1D9E75;margin-right:5px;vertical-align:middle;"></span>Natural</span> '
     +accSpan
-    +'<span style="color:#aaa;">Dimmed = outside selection</span>';
+    +'<span style="color:#aaa;"></span>';
 }
 
 /* ── stats ── */
 function showStats(){
   var s=st(),m=masteredCount(),tot=activeTotal();
-  document.getElementById('stats-title').textContent='Stats — '+(quizMode==='quiz'?'Quiz':'Practice')+' mode';
+  document.getElementById('stats-title').textContent='Stats';
   document.getElementById('sv-asked').textContent=s.totalAsked;
   document.getElementById('sv-acc').textContent=s.totalAsked>0?Math.round(s.totalCorrect/s.totalAsked*100)+'%':'—';
   document.getElementById('sv-mastered').textContent=m+'/'+tot;
@@ -1175,7 +1190,7 @@ function showCompletion(){
   document.getElementById('co-asked').textContent=s.totalAsked;
   document.getElementById('co-acc').textContent=s.totalAsked>0?Math.round(s.totalCorrect/s.totalAsked*100)+'%':'—';
   document.getElementById('co-avg').textContent=s.totalAsked>0?(s.totalTime/s.totalAsked/1000).toFixed(1)+'s':'—';
-  document.getElementById('complete-title').textContent=quizMode==='quiz'?'Fretboard mastered!':'Practice set complete!';
+  document.getElementById('complete-title').textContent='Practice set complete!';
   document.getElementById('complete-sub').textContent='All '+tot+' positions mastered at '+EXP[expLevel].label+' level.';
   var actions=document.getElementById('complete-actions');actions.innerHTML='';
   function mbtn(label,color,fn){
@@ -1183,7 +1198,7 @@ function showCompletion(){
     b.style.background=color;b.addEventListener('click',fn);actions.appendChild(b);
   }
   mbtn('View summary','#534AB7',function(){document.getElementById('complete-overlay').classList.remove('open');showSummary();});
-  if(quizMode==='practice')mbtn('Expand scope','#534AB7',function(){document.getElementById('complete-overlay').classList.remove('open');showSettings();});
+  mbtn('Expand scope','#534AB7',function(){document.getElementById('complete-overlay').classList.remove('open');showSettings();});
   if(expIdx<expOrder.length-1){
     var next=expOrder[expIdx+1];
     mbtn('Level up to '+EXP[next].label,'#1D9E75',function(){
