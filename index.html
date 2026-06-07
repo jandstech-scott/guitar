@@ -72,9 +72,8 @@
     #fb-outer {
       display: flex; align-items: center; justify-content: center;
       background: #fff; border: 1px solid #e2e2de;
-      border-radius: 10px; padding: 10px 14px;
+      border-radius: 10px; padding: 6px 4px;
       overflow: hidden; position: relative;
-      /* height set by JS */
     }
     #fb-canvas { display: block; max-width: 100%; }
     #pause-cover {
@@ -216,8 +215,7 @@
     #study-fb-outer {
       display: flex; align-items: center; justify-content: center;
       background: #fff; border: 1px solid #e2e2de;
-      border-radius: 10px; padding: 10px 14px; overflow: hidden;
-      /* height set by JS */
+      border-radius: 10px; padding: 6px 4px; overflow: hidden;
     }
     #study-canvas { display: block; max-width: 100%; }
     #study-legend { flex-shrink: 0; display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #666; background: #fff; border: 1px solid #e2e2de; border-radius: 8px; padding: 8px 12px; }
@@ -642,14 +640,10 @@ function togglePause(){
 function drawFretboard(tS,tF,revealNote,isWrong){
   var outer=document.getElementById('fb-outer');
   var canvas=document.getElementById('fb-canvas');
-  var aW=outer.clientWidth-28;
-  var aH=outer.clientHeight-20;
-  /* fallback to window size if layout hasn't settled */
-  if(aW<=10) aW=window.innerWidth-28;
-  if(aH<=10) aH=window.innerHeight*0.45;
-  var cW=aW,cH=aW/NECK_ASPECT;
-  if(cH>aH){cH=aH;cW=aH*NECK_ASPECT;}
-  cW=Math.max(200,Math.floor(cW));cH=Math.max(40,Math.floor(cH));
+  var aW=outer.clientWidth-8;
+  if(aW<=10) aW=window.innerWidth-8;
+  var cW=Math.max(200,Math.floor(aW));
+  var cH=Math.max(40,Math.floor(cW/NECK_ASPECT));
   
   canvas.width=cW;canvas.height=cH;
   canvas.style.width=cW+'px';canvas.style.height=cH+'px';
@@ -996,12 +990,10 @@ function drawStudyFretboard(activeStrings,fMin,fMax){
   var canvas=document.getElementById('study-canvas');
   var dark=isDark();
   var pool=accidentalMode==='flats'?NOTES_FLAT:NOTES_SHARP;
-  var aW=outer.clientWidth-28,aH=outer.clientHeight-20;
-  if(aW<=10) aW=window.innerWidth-28;
-  if(aH<=10) aH=window.innerHeight*0.55;
-  var cW=aW,cH=aW/NECK_ASPECT;
-  if(cH>aH){cH=aH;cW=aH*NECK_ASPECT;}
-  cW=Math.max(200,Math.floor(cW));cH=Math.max(40,Math.floor(cH));
+  var aW=outer.clientWidth-8;
+  if(aW<=10) aW=window.innerWidth-8;
+  var cW=Math.max(200,Math.floor(aW));
+  var cH=Math.max(40,Math.floor(cW/NECK_ASPECT));
   canvas.width=cW;canvas.height=cH;
   canvas.style.width=cW+'px';canvas.style.height=cH+'px';
   var ctx=canvas.getContext('2d');ctx.clearRect(0,0,cW,cH);
