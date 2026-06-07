@@ -6,27 +6,24 @@
   <title>Guitar Fretboard Quiz</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { height: 100%; }
+    html, body { height: 100%; width: 100%; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: #f2f2ee;
       color: #1a1a1a;
-      min-height: 100%;
     }
     @media (prefers-color-scheme: dark) {
       body { background: #181818; color: #f0f0f0; }
-      .surface { background: #232323 !important; border-color: #333 !important; }
-      .surface2 { background: #181818 !important; }
     }
 
     /* ── layout ── */
     #app {
       display: flex;
       flex-direction: column;
-      min-height: 100svh;
+      width: 100%;
       padding: 10px 14px;
       gap: 8px;
-      width: 100%;
+      /* height set by JS */
     }
 
     /* ── topbar ── */
@@ -73,11 +70,11 @@
 
     /* ── fretboard ── */
     #fb-outer {
-      flex: 1; min-height: 120px;
       display: flex; align-items: center; justify-content: center;
       background: #fff; border: 1px solid #e2e2de;
       border-radius: 10px; padding: 10px 14px;
       overflow: hidden; position: relative;
+      /* height set by JS */
     }
     #fb-canvas { display: block; max-width: 100%; }
     #pause-cover {
@@ -122,7 +119,7 @@
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.45);
       z-index: 1000;
-      align-items: center; justify-content: center;
+      align-items: flex-start; justify-content: center;
       padding: 16px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -132,9 +129,13 @@
       background: #fff; border-radius: 14px; border: 1px solid #e2e2de;
       width: 100%; max-width: 480px;
       padding: 1.5rem;
-      max-height: 90vh; overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      margin: auto;
       position: relative;
+    }
+    .panel-actions {
+      position: sticky; bottom: 0;
+      background: #fff; border-top: 1px solid #e2e2de;
+      padding: 12px 0 0; margin-top: 1.25rem;
     }
     .panel-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
     .panel-title { font-size: 16px; font-weight: 600; }
@@ -213,10 +214,10 @@
       flex-direction: column; padding: 10px 14px; gap: 8px;
     }
     #study-fb-outer {
-      flex: 1; min-height: 120px;
       display: flex; align-items: center; justify-content: center;
       background: #fff; border: 1px solid #e2e2de;
       border-radius: 10px; padding: 10px 14px; overflow: hidden;
+      /* height set by JS */
     }
     #study-canvas { display: block; max-width: 100%; }
     #study-legend { flex-shrink: 0; display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #666; background: #fff; border: 1px solid #e2e2de; border-radius: 8px; padding: 8px 12px; }
@@ -243,6 +244,8 @@
       #prompt-row, #fb-outer, #hm-wrap, .panel, #pause-cover,
       #study-view, #study-fb-outer, #study-legend { background: #232323 !important; border-color: #333 !important; }
       .ans-btn, .tog-btn, .action-btn, .pause-btn, #pause-btn { background: #232323 !important; border-color: #333 !important; color: #f0f0f0 !important; }
+      .action-btn.primary { background: #1D9E75 !important; border-color: #1D9E75 !important; color: #fff !important; }
+      .panel, .panel-actions { background: #232323 !important; border-color: #333 !important; }
       .seg-btn { background: #232323 !important; color: #999 !important; }
       .seg-btn.study-sel { background: #271900 !important; color: #FAC775 !important; }
       .seg-btn.practice-sel { background: #1a1840 !important; color: #AFA9EC !important; }
@@ -382,10 +385,13 @@
       <div class="exp-card-title">Expert</div>
       <div class="exp-card-desc">Confident &lt;3s · Slow 3–6s · 5 to master</div>
     </div>
-    <div class="action-row">
+    <div class="panel-actions action-row">
       <button class="action-btn" onclick="hideSettings()">Cancel</button>
-      <button class="action-btn primary" onclick="applySettingsAndStart()">Start →</button>
     </div>
+  </div>
+  <!-- Start button outside panel, pinned to bottom of overlay -->
+  <div style="position:fixed;bottom:16px;right:16px;z-index:1001;display:none;" id="start-bar">
+    <button style="padding:10px 22px;font-size:14px;font-weight:700;background:#1D9E75;color:#fff;border:none;border-radius:10px;cursor:pointer;-webkit-appearance:none;box-shadow:0 2px 8px rgba(0,0,0,0.25);" onclick="applySettingsAndStart();">Start →</button>
   </div>
 </div>
 
@@ -453,7 +459,6 @@
 </div>
 
 <script>
-'use strict';
 
 /* ── constants ── */
 const NOTES_SHARP=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -637,12 +642,15 @@ function togglePause(){
 function drawFretboard(tS,tF,revealNote,isWrong){
   var outer=document.getElementById('fb-outer');
   var canvas=document.getElementById('fb-canvas');
-  var aW=outer.clientWidth-28,aH=outer.clientHeight-20;
-  if(aW<=0)aW=300;if(aH<=0)aH=80;
+  var aW=outer.clientWidth-28;
+  var aH=outer.clientHeight-20;
+  /* fallback to window size if layout hasn't settled */
+  if(aW<=10) aW=window.innerWidth-28;
+  if(aH<=10) aH=window.innerHeight*0.45;
   var cW=aW,cH=aW/NECK_ASPECT;
   if(cH>aH){cH=aH;cW=aH*NECK_ASPECT;}
-  cW=Math.floor(cW);cH=Math.floor(cH);
-  if(cW<10||cH<10)return;
+  cW=Math.max(200,Math.floor(cW));cH=Math.max(40,Math.floor(cH));
+  
   canvas.width=cW;canvas.height=cH;
   canvas.style.width=cW+'px';canvas.style.height=cH+'px';
   var ctx=canvas.getContext('2d');
@@ -818,24 +826,31 @@ function handleAnswer(chosen,correct,correctIdx,kn){
 }
 
 function updateTopBar(){
+  try {
   var m=masteredCount(),tot=activeTotal(),s=st();
-  document.getElementById('s-asked').textContent=s.totalAsked;
-  document.getElementById('s-acc').textContent=s.totalAsked>0?Math.round(s.totalCorrect/s.totalAsked*100)+'%':'—';
-  document.getElementById('s-streak').textContent=s.currentStreak;
-  document.getElementById('s-mastered').textContent=m;
-  document.getElementById('mastered-pill').innerHTML='<b>'+m+'</b>/'+tot;
-  document.getElementById('prog-fill').style.width=Math.round(m/Math.max(1,tot)*100)+'%';
-  document.getElementById('mode-pill-quiz').style.display=quizMode==='quiz'?'':'none';
-  document.getElementById('mode-pill-practice').style.display=quizMode==='practice'?'':'none';
-  document.getElementById('exp-pill').textContent=EXP[expLevel].label;
-  document.getElementById('summary-btn').style.display=s.totalAsked>0?'':'none';
+  var el;
+  el=document.getElementById('s-asked');if(el)el.textContent=s.totalAsked;
+  el=document.getElementById('s-acc');if(el)el.textContent=s.totalAsked>0?Math.round(s.totalCorrect/s.totalAsked*100)+'%':'—';
+  el=document.getElementById('s-streak');if(el)el.textContent=s.currentStreak;
+  el=document.getElementById('mastered-pill');if(el)el.innerHTML='<b>'+m+'</b>/'+tot;
+  el=document.getElementById('prog-fill');if(el)el.style.width=Math.round(m/Math.max(1,tot)*100)+'%';
+  el=document.getElementById('mode-pill-quiz');if(el)el.style.display=quizMode==='quiz'?'':'none';
+  el=document.getElementById('mode-pill-practice');if(el)el.style.display=quizMode==='practice'?'':'none';
+  el=document.getElementById('exp-pill');if(el)el.textContent=EXP[expLevel].label;
+  el=document.getElementById('summary-btn');if(el)el.style.display=s.totalAsked>0?'':'none';
+  } catch(e) { alert('updateTopBar ERROR: '+e.message); }
 }
 
 function updateSpeedLegend(){
-  var f=T_FAST()/1000,sl=T_SLOW()/1000;
-  document.getElementById('leg-fast').textContent='fast (<'+f+'s)';
-  document.getElementById('leg-slow').textContent='slow ('+f+'–'+sl+'s)';
-  document.getElementById('leg-hesitant').textContent='wrong/hesitant (>'+sl+'s)';
+  try {
+    var f=T_FAST()/1000,sl=T_SLOW()/1000;
+    var el1=document.getElementById('leg-fast');
+    var el2=document.getElementById('leg-slow');
+    var el3=document.getElementById('leg-hesitant');
+    if(el1)el1.textContent='fast (<'+f+'s)';
+    if(el2)el2.textContent='slow ('+f+'\u2013'+sl+'s)';
+    if(el3)el3.textContent='wrong/hesitant (>'+sl+'s)';
+  } catch(e) { alert('updateSpeedLegend ERROR: '+e.message); }
 }
 
 /* ── settings ── */
@@ -847,8 +862,12 @@ function showSettings(){
   pendingAccidental=accidentalMode;
   refreshSettingsUI();
   document.getElementById('settings-overlay').classList.add('open');
+  document.getElementById('start-bar').style.display='block';
 }
-function hideSettings(){document.getElementById('settings-overlay').classList.remove('open');}
+function hideSettings(){
+  document.getElementById('settings-overlay').classList.remove('open');
+  document.getElementById('start-bar').style.display='none';
+}
 
 function refreshSettingsUI(){
   document.getElementById('seg-study').className='seg-btn'+(pendingQuizMode==='study'?' study-sel':'');
@@ -937,7 +956,9 @@ function applySettingsAndStart(){
   practiceStrings=new Set(pendingStrings);practiceFretMin=pendingFretMin;practiceFretMax=pendingFretMax;
   if(quizMode==='study'){showStudy();return;}
   if(changed){states[quizMode]=makeState();}
-  updateSpeedLegend();updateTopBar();save();
+  updateSpeedLegend();
+  updateTopBar();
+  save();
   startCountdown();
 }
 
@@ -946,17 +967,13 @@ function startCountdown(){
   var overlay=document.getElementById('countdown-overlay');
   var num=document.getElementById('countdown-num');
   overlay.classList.add('open');
-  var count=3;num.textContent=count;
-  function tick(){
-    num.style.opacity='0.3';
-    setTimeout(function(){
-      count--;
-      if(count<=0){overlay.classList.remove('open');renderQuestion();return;}
-      num.textContent=count;num.style.opacity='1';
-      setTimeout(tick,900);
-    },200);
-  }
-  setTimeout(tick,700);
+  num.textContent='3';
+  setTimeout(function(){ num.textContent='2'; }, 1000);
+  setTimeout(function(){ num.textContent='1'; }, 2000);
+  setTimeout(function(){
+    overlay.classList.remove('open');
+    setTimeout(function(){ layoutApp(); renderQuestion(); }, 150);
+  }, 3000);
 }
 
 /* ── study ── */
@@ -980,11 +997,11 @@ function drawStudyFretboard(activeStrings,fMin,fMax){
   var dark=isDark();
   var pool=accidentalMode==='flats'?NOTES_FLAT:NOTES_SHARP;
   var aW=outer.clientWidth-28,aH=outer.clientHeight-20;
-  if(aW<=0)aW=300;if(aH<=0)aH=80;
+  if(aW<=10) aW=window.innerWidth-28;
+  if(aH<=10) aH=window.innerHeight*0.55;
   var cW=aW,cH=aW/NECK_ASPECT;
   if(cH>aH){cH=aH;cW=aH*NECK_ASPECT;}
-  cW=Math.floor(cW);cH=Math.floor(cH);
-  if(cW<10||cH<10)return;
+  cW=Math.max(200,Math.floor(cW));cH=Math.max(40,Math.floor(cH));
   canvas.width=cW;canvas.height=cH;
   canvas.style.width=cW+'px';canvas.style.height=cH+'px';
   var ctx=canvas.getContext('2d');ctx.clearRect(0,0,cW,cH);
@@ -1186,10 +1203,35 @@ function showCompletion(){
   document.getElementById('complete-overlay').classList.add('open');
 }
 
+/* ── layout: set explicit pixel heights so canvas always has real dimensions ── */
+function layoutApp(){
+  var winH=window.innerHeight;
+  document.getElementById('app').style.height=winH+'px';
+
+  var topbar=document.getElementById('topbar');
+  var prompt=document.getElementById('prompt-row');
+  var answers=document.getElementById('answer-row');
+  var bottom=document.getElementById('bottom-row');
+  var hm=document.getElementById('hm-wrap');
+
+  var gaps=8*5; /* 5 gaps between 6 rows */
+  var pad=10*2; /* top + bottom padding */
+  var used=pad+gaps
+    +(topbar?topbar.offsetHeight:40)
+    +(prompt?prompt.offsetHeight:60)
+    +(answers?answers.offsetHeight:60)
+    +(bottom?bottom.offsetHeight:34)
+    +(hm?hm.offsetHeight:90);
+
+  var fbH=Math.max(100, winH-used);
+  document.getElementById('fb-outer').style.height=fbH+'px';
+}
+
 /* ── resize ── */
 var rsTimer;
 window.addEventListener('resize',function(){
   clearTimeout(rsTimer);rsTimer=setTimeout(function(){
+    layoutApp();
     if(document.getElementById('study-view').style.display==='flex'){
       var activeStr=[...practiceStrings].sort(function(a,b){return a-b;});
       drawStudyFretboard(activeStr,practiceFretMin,practiceFretMax);
@@ -1204,6 +1246,7 @@ window.addEventListener('resize',function(){
 /* ── init ── */
 updateSpeedLegend();
 updateTopBar();
+layoutApp();
 setTimeout(function(){
   pendingQuizMode=quizMode;pendingExp=expLevel;
   pendingStrings=[...practiceStrings];
@@ -1211,6 +1254,7 @@ setTimeout(function(){
   pendingAccidental=accidentalMode;
   refreshSettingsUI();
   document.getElementById('settings-overlay').classList.add('open');
+  document.getElementById('start-bar').style.display='block';
 }, 100);
 </script>
 </body>
