@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Guitar Fretboard — Adaptive Quiz</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#f2f2ee;--surface:#fff;--border:#e2e2de;
+      --text:#1a1a1a;--t2:#666;--t3:#aaa;
+      --teal:#1D9E75;--teal-l:#E1F5EE;--teal-d:#085041;
+      --red:#E24B4A;--red-l:#FCEBEB;--red-d:#791F1F;
+      --amber-l:#FAEEDA;--amber-d:#633806;
+      --blue-l:#E6F1FB;--blue-d:#0C447C;
+      --purple-l:#EEEDFE;--purple-d:#3C3489;
+    }
+    @media(prefers-color-scheme:dark){:root{
+      --bg:#181818;--surface:#232323;--border:#333;
+      --text:#f0f0f0;--t2:#999;--t3:#555;
+      --teal-l:#0a2e22;--teal-d:#9FE1CB;
+      --red-l:#2e1111;--red-d:#F09595;
+      --amber-l:#271900;--amber-d:#FAC775;
+      --blue-l:#0c1e30;--blue-d:#85B7EB;
+      --purple-l:#1a1840;--purple-d:#AFA9EC;
+    }}
+    :root { --app-height: 100vh; }
+    html { height: 100%; }
+    body { height: 100%; height: -webkit-fill-available; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);overscroll-behavior:none; }
+    #shell{display:flex;flex-direction:column;height:100vh;height:var(--app-height);padding:10px 14px;gap:8px;max-width:1200px;margin:0 auto;width:100%;}
+
+    #topbar{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+    #title{font-size:14px;font-weight:600;white-space:nowrap;}
+    #prog-bg{flex:1;height:5px;background:var(--border);border-radius:3px;min-width:40px;}
+    #prog-fill{height:5px;background:var(--teal);border-radius:3px;width:0%;transition:width 0.5s;}
+    .pill{font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--t2);white-space:nowrap;}
+    .pill b{font-weight:700;color:var(--text);}
+    #mastered-pill{background:var(--teal-l);border-color:var(--teal);color:var(--teal-d);}
+    #quiz-mode-pill{background:var(--blue-l);border-color:#185FA5;color:var(--blue-d);}
+    #practice-mode-pill{background:var(--purple-l);border-color:#534AB7;color:var(--purple-d);display:none;}
+    .txt-btn{font-size:12px;background:none;border:none;cursor:pointer;color:var(--t3);text-decoration:underline;white-space:nowrap;flex-shrink:0;}
+
+    #prompt-row{display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;}
+    #prompt-left{flex:1;}
+    #prompt-text{font-size:22px;font-weight:600;letter-spacing:-0.4px;}
+    #prompt-sub{font-size:12px;color:var(--t3);margin-top:2px;}
+    .badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+    #timer-display{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;min-width:52px;}
+    #timer-val{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text);line-height:1;transition:color 0.3s;}
+    #timer-val.slow{color:#BA7517;}#timer-val.hesitant{color:#E24B4A;}#timer-val.paused{color:var(--t3);}
+    #timer-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px;}
+    #pause-btn{font-size:13px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--t2);flex-shrink:0;}
+    #pause-btn:hover{background:var(--bg);}
+
+    #fb-outer{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;overflow:hidden;position:relative;}
+    #fb-canvas{display:block;}
+    #pause-cover{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:var(--surface);border-radius:10px;align-items:center;justify-content:center;flex-direction:column;gap:8px;}
+    #pause-cover.show{display:flex;}
+    #pause-cover-text{font-size:18px;font-weight:600;color:var(--t3);}
+
+    #answer-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0;}
+    .ans-btn{padding:10px 4px;font-size:18px;font-weight:600;background:var(--surface);border:1px solid var(--border);border-radius:10px;cursor:pointer;color:var(--text);text-align:center;transition:background 0.1s,transform 0.08s;}
+    .ans-btn:hover:not(:disabled){background:var(--bg);}
+    .ans-btn:active:not(:disabled){transform:scale(0.96);}
+    .ans-btn:disabled{cursor:default;}
+
+    #bottom-row{display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:34px;}
+    #feedback{font-size:14px;font-weight:600;flex:1;}
+
+    #hm-wrap{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 12px;}
+    #hm-canvas{display:block;width:100%;}
+    #speed-legend{display:flex;gap:12px;align-items:center;margin-top:5px;font-size:11px;color:var(--t3);flex-wrap:wrap;}
+    .sl-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle;}
+
+    .overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center;padding:16px;-webkit-overflow-scrolling:touch;}
+    .overlay.open{display:flex;}
+    .panel{background:var(--surface);border-radius:14px;border:1px solid var(--border);width:100%;max-width:480px;padding:1.5rem;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    .panel-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;}
+    .panel-title{font-size:16px;font-weight:600;}
+    .close-btn{background:none;border:none;cursor:pointer;font-size:22px;color:var(--t3);line-height:1;}
+    .sec-lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--t3);font-weight:600;margin-bottom:8px;}
+
+    .seg{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.25rem;}
+    .seg-btn{flex:1;padding:9px 8px;font-size:13px;font-weight:600;background:var(--surface);border:none;cursor:pointer;color:var(--t2);transition:background 0.15s;}
+    .seg-btn.quiz-sel{background:var(--blue-l);color:var(--blue-d);}
+    .seg-btn.practice-sel{background:var(--purple-l);color:var(--purple-d);}
+    .seg-btn.study-sel{background:var(--amber-l);color:var(--amber-d);}
+    .seg-btn+.seg-btn{border-left:1px solid var(--border);}
+
+    .exp-card{border:2px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;margin-bottom:8px;transition:border-color 0.15s,background 0.15s;}
+    .exp-card:last-of-type{margin-bottom:0;}
+    .exp-card:hover{border-color:var(--teal);}
+    .exp-card.selected{border-color:var(--teal);background:var(--teal-l);}
+    .exp-card-title{font-size:14px;font-weight:600;color:var(--text);}
+    .exp-card-desc{font-size:11px;color:var(--t2);margin-top:2px;}
+
+    /* toggle buttons (sharps/flats/strings) */
+    .tog-grid{display:grid;gap:6px;margin-bottom:1rem;}
+    .tog-grid.cols3{grid-template-columns:repeat(3,1fr);}
+    .tog-grid.cols2{grid-template-columns:repeat(2,1fr);}
+    .tog-grid.cols4{grid-template-columns:repeat(4,1fr);}
+    .tog-btn{padding:8px 6px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--t2);text-align:center;transition:all 0.12s;}
+    .tog-btn.on{border-width:2px;border-color:#0F6E56;background:#1D9E75;color:#fff;}
+
+    #stats-panel{max-width:640px;}
+    .sp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem;}
+    .sp-stat{background:var(--bg);border-radius:8px;padding:10px 12px;}
+    .sp-stat-val{font-size:22px;font-weight:600;}
+    .sp-stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--t3);margin-top:2px;}
+    .legend{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;}
+    .ldot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle;}
+    .legend span{font-size:12px;color:var(--t2);}
+    .weak-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+    .weak-item:last-child{border-bottom:none;}
+    .sp-section{margin-top:1.25rem;}
+    .sp-actions{display:flex;gap:8px;margin-top:1.25rem;}
+    .sp-btn{flex:1;padding:10px;font-size:13px;font-weight:500;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);}
+    .sp-btn:hover{background:var(--bg);}
+    .sp-btn.danger{color:var(--red);}
+
+    /* summary panel */
+    #summary-panel{max-width:640px;}
+    .sum-zone{border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;}
+    .sum-zone.urgent{background:var(--red-l);border-left:3px solid var(--red);color:var(--red-d);}
+    .sum-zone.slow-z{background:var(--amber-l);border-left:3px solid #BA7517;color:var(--amber-d);}
+    .sum-zone.good{background:var(--teal-l);border-left:3px solid var(--teal);color:var(--teal-d);}
+    .sum-zone-title{font-weight:600;margin-bottom:4px;}
+    .sum-zone-detail{font-size:12px;opacity:0.85;line-height:1.5;}
+
+    #countdown-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+    #countdown-overlay.open{display:flex;}
+    #countdown-num{font-size:120px;font-weight:700;color:#fff;line-height:1;letter-spacing:-4px;transition:transform 0.15s,opacity 0.15s;}
+    #countdown-label{font-size:16px;color:rgba(255,255,255,0.6);letter-spacing:0.06em;text-transform:uppercase;}
+
+    #complete-overlay .panel{max-width:400px;text-align:center;}
+  </style>
+</head>
+<body>
+<div id="shell">
+  <div id="topbar">
+    <div id="title">Fretboard Quiz</div>
+    <div id="prog-bg"><div id="prog-fill"></div></div>
+    <div class="pill"><b id="s-asked">0</b> asked</div>
+    <div class="pill"><b id="s-acc">—</b> acc</div>
+    <div class="pill"><b id="s-streak">0</b> streak</div>
+    <div class="pill" id="mastered-pill"><b>0</b>/126 mastered</div>
+    <div class="pill" id="quiz-mode-pill">Quiz</div>
+    <div class="pill" id="practice-mode-pill">Practice</div>
+    <div class="pill" id="exp-pill">Intermediate</div>
+    <button id="pause-btn" onclick="togglePause()">⏸ Pause</button>
+    <button class="txt-btn" onclick="showSettings()">settings</button>
+    <button class="txt-btn" onclick="showStats()">stats</button>
+    <button class="txt-btn" id="summary-btn" onclick="showSummary()" style="display:none;">summary</button>
+  </div>
+
+  <div id="prompt-row">
+    <div id="prompt-left">
+      <div id="prompt-text">—</div>
+      <div id="prompt-sub"></div>
+    </div>
+    <div class="badge" id="diff-badge"></div>
+    <div id="timer-display">
+      <div id="timer-val">0.0</div>
+      <div id="timer-lbl">seconds</div>
+    </div>
+  </div>
+
+  <div id="fb-outer">
+    <canvas id="fb-canvas"></canvas>
+    <div id="pause-cover">
+      <div id="pause-cover-text">Paused</div>
+      <button onclick="togglePause()" style="margin-top:8px;padding:8px 20px;font-size:14px;font-weight:600;background:var(--teal);color:#fff;border:none;border-radius:8px;cursor:pointer;">Resume</button>
+    </div>
+  </div>
+
+  <div id="answer-row"></div>
+  <div id="bottom-row"><div id="feedback"></div></div>
+
+  <div id="hm-wrap">
+    <canvas id="hm-canvas" height="68"></canvas>
+    <div id="speed-legend">
+      <span><span class="sl-dot" style="background:#1D9E75"></span><span id="leg-fast">fast</span></span>
+      <span><span class="sl-dot" style="background:#BA7517"></span><span id="leg-slow">slow</span></span>
+      <span><span class="sl-dot" style="background:#E24B4A"></span><span id="leg-hesitant">hesitant/wrong</span></span>
+      <span><span class="sl-dot" style="background:#FAC775"></span>learning</span>
+      <span><span class="sl-dot" style="background:#ddd"></span>unseen</span>
+    </div>
+  </div>
+</div>
+
+<!-- study view — full screen, same layout as shell -->
+<div id="study-view" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:50;flex-direction:column;padding:10px 14px;gap:8px;max-width:1200px;margin:0 auto;width:100%;height:100vh;height:var(--app-height);">
+  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <div id="study-title" style="font-size:14px;font-weight:600;flex:1;"></div>
+    <button onclick="hideStudy();showSettings();" style="font-size:12px;background:none;border:none;cursor:pointer;color:var(--t3);text-decoration:underline;">← back to settings</button>
+    <button onclick="hideStudy();quizMode='practice';pendingQuizMode='practice';applySettingsAndStart();" style="padding:5px 14px;font-size:13px;font-weight:600;background:var(--teal);color:#fff;border:none;border-radius:6px;cursor:pointer;">Start Practice →</button>
+  </div>
+  <div id="study-fb-outer" style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;overflow:hidden;">
+    <canvas id="study-canvas" style="display:block;"></canvas>
+  </div>
+  <div id="study-legend" style="flex-shrink:0;display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--t2);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;"></div>
+</div>
+
+<div id="countdown-overlay">
+  <div id="countdown-num">3</div>
+  <div id="countdown-label">get ready</div>
+</div>
+
+<!-- study overlay removed — study now uses full-screen #study-view inside shell -->
+
+
+<!-- settings -->
+<div class="overlay" id="settings-overlay">
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Settings</div>
+      <button class="close-btn" onclick="hideSettings()" aria-label="close">×</button>
+    </div>
+    <div class="sec-lbl">Mode</div>
+    <div class="seg">
+      <button class="seg-btn" id="seg-study" onclick="selectQuizMode('study')">Study</button>
+      <button class="seg-btn practice-sel" id="seg-practice" onclick="selectQuizMode('practice')">Practice</button>
+      <button class="seg-btn" id="seg-quiz" onclick="selectQuizMode('quiz')">Quiz</button>
+    </div>
+    <div id="practice-filters" style="display:none;">
+      <div class="sec-lbl">Strings</div>
+      <div class="tog-grid cols3" id="string-btns" style="margin-bottom:1rem;"></div>
+      <div class="sec-lbl">Fret range &nbsp;<span id="fret-range-lbl" style="font-weight:700;color:var(--text);text-transform:none;letter-spacing:0;"></span></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:12px;color:var(--t3);min-width:28px;">from</span>
+        <input type="range" id="fret-min-sl" min="0" max="20" value="0" step="1" style="flex:1;"
+          oninput="pendingFretMin=Math.min(parseInt(this.value),parseInt(document.getElementById('fret-max-sl').value));this.value=pendingFretMin;updateFretDisplay();">
+        <span style="font-size:12px;font-weight:600;min-width:20px;text-align:right;" id="fret-min-num">0</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+        <span style="font-size:12px;color:var(--t3);min-width:28px;">to</span>
+        <input type="range" id="fret-max-sl" min="0" max="20" value="20" step="1" style="flex:1;"
+          oninput="pendingFretMax=Math.max(parseInt(this.value),parseInt(document.getElementById('fret-min-sl').value));this.value=pendingFretMax;updateFretDisplay();">
+        <span style="font-size:12px;font-weight:600;min-width:20px;text-align:right;" id="fret-max-num">20</span>
+      </div>
+    </div>
+    <div class="sec-lbl">Accidentals</div>
+    <div class="tog-grid cols3" id="accidental-btns" style="margin-bottom:1rem;"></div>
+    <div class="sec-lbl">Experience level</div>
+    <div class="exp-card" id="mc-beginner" onclick="selectExp('beginner')">
+      <div class="exp-card-title">Beginner</div>
+      <div class="exp-card-desc">Confident &lt;10s · Slow 10–20s · 3 correct to master</div>
+    </div>
+    <div class="exp-card" id="mc-intermediate" onclick="selectExp('intermediate')">
+      <div class="exp-card-title">Intermediate</div>
+      <div class="exp-card-desc">Confident &lt;5s · Slow 5–12s · 4 correct to master</div>
+    </div>
+    <div class="exp-card" id="mc-expert" onclick="selectExp('expert')">
+      <div class="exp-card-title">Expert</div>
+      <div class="exp-card-desc">Confident &lt;3s · Slow 3–6s · 5 correct to master</div>
+    </div>
+    <div style="margin-top:1.25rem;display:flex;gap:8px;">
+      <button onclick="hideSettings()" style="flex:1;padding:10px;font-size:13px;font-weight:500;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);">Cancel</button>
+      <button onclick="applySettingsAndStart()" style="flex:2;padding:10px;font-size:14px;font-weight:700;background:var(--teal);color:#fff;border:none;border-radius:8px;cursor:pointer;">Start →</button>
+    </div>
+  </div>
+</div>
+
+<!-- stats -->
+<div class="overlay" id="stats-overlay">
+  <div class="panel" id="stats-panel">
+    <div class="panel-hdr">
+      <div class="panel-title" id="stats-title">Stats</div>
+      <button class="close-btn" onclick="hideStats()" aria-label="close">×</button>
+    </div>
+    <div class="sp-stats">
+      <div class="sp-stat"><div class="sp-stat-val" id="sv-asked">0</div><div class="sp-stat-lbl">asked</div></div>
+      <div class="sp-stat"><div class="sp-stat-val" id="sv-acc">—</div><div class="sp-stat-lbl">accuracy</div></div>
+      <div class="sp-stat"><div class="sp-stat-val" id="sv-mastered">0</div><div class="sp-stat-lbl">mastered</div></div>
+      <div class="sp-stat"><div class="sp-stat-val" id="sv-avg">—</div><div class="sp-stat-lbl">avg time</div></div>
+    </div>
+    <div class="sec-lbl">Knowledge map</div>
+    <canvas id="hm2-canvas" style="display:block;width:100%;border-radius:6px;" height="90"></canvas>
+    <div class="legend">
+      <span><span class="ldot" style="background:#1D9E75"></span>mastered</span>
+      <span><span class="ldot" style="background:#FAC775"></span>learning</span>
+      <span><span class="ldot" style="background:#BA7517"></span>slow</span>
+      <span><span class="ldot" style="background:#E24B4A"></span>struggling</span>
+      <span><span class="ldot" style="background:#ddd"></span>unseen</span>
+    </div>
+    <div class="sp-section"><div class="sec-lbl">Needs most work</div><div id="weak-list"></div></div>
+    <div class="sp-section"><div class="sec-lbl">By string</div><div id="string-bars"></div></div>
+    <div class="sp-actions">
+      <button class="sp-btn" onclick="hideStats();showSettings();">settings</button>
+      <button class="sp-btn" onclick="hideStats();showSummary();">summary</button>
+      <button class="sp-btn" onclick="hideStats()">back</button>
+      <button class="sp-btn danger" onclick="resetProgress()">reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- practice summary -->
+<div class="overlay" id="summary-overlay">
+  <div class="panel" id="summary-panel">
+    <div class="panel-hdr">
+      <div class="panel-title">Practice summary</div>
+      <button class="close-btn" onclick="hideSummary()" aria-label="close">×</button>
+    </div>
+    <div id="summary-body"></div>
+    <div style="margin-top:1.25rem;display:flex;gap:8px;">
+      <button class="sp-btn" onclick="hideSummary();showSettings();">open in settings</button>
+      <button class="sp-btn" onclick="hideSummary()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- completion -->
+<div class="overlay" id="complete-overlay">
+  <div class="panel" style="max-width:400px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:0.5rem;">🎸</div>
+    <div style="font-size:22px;font-weight:700;margin-bottom:0.4rem;" id="complete-title">Set complete!</div>
+    <div style="font-size:14px;color:var(--t2);margin-bottom:1.5rem;" id="complete-sub"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem;">
+      <div class="sp-stat"><div class="sp-stat-val" id="co-asked">—</div><div class="sp-stat-lbl">asked</div></div>
+      <div class="sp-stat"><div class="sp-stat-val" id="co-acc">—</div><div class="sp-stat-lbl">accuracy</div></div>
+      <div class="sp-stat"><div class="sp-stat-val" id="co-avg">—</div><div class="sp-stat-lbl">avg time</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;" id="complete-actions"></div>
+  </div>
+</div>
+
+<script>
+/* ── constants ── */
+const NOTES_SHARP=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const NOTES_FLAT= ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const NATURAL_IDX=[0,2,4,5,7,9,11]; /* C D E F G A B */
+const ACCIDENTAL_IDX=[1,3,6,8,10];  /* the 5 sharps/flats */
+const STRING_OPEN=[4,11,7,2,9,4];
+const STRING_NAMES=['e (1st)','B (2nd)','G (3rd)','D (4th)','A (5th)','E (6th)'];
+const MAX_FRET=20;
+const NECK_ASPECT=6.5;
+const SAVE_KEY='gtr_srs_v5';
+const EXP={
+  beginner:    {label:'Beginner',    tFast:10000,tSlow:20000,mastery:3},
+  intermediate:{label:'Intermediate',tFast:5000, tSlow:12000,mastery:4},
+  expert:      {label:'Expert',      tFast:3000, tSlow:6000, mastery:5},
+};
+
+/* ── helpers ── */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function isDark(){return window.matchMedia('(prefers-color-scheme:dark)').matches;}
+
+/* accidental mode: 'sharps'|'flats'|'both'|'none' */
+/* noteFor returns the display name for a chromatic index given current accidental mode */
+/* perQuestionSpelling is set once per question when mode='both' */
+let perQuestionSpelling='sharp'; /* 'sharp'|'flat' */
+function noteFor(idx,spelling){
+  spelling=spelling||perQuestionSpelling;
+  return spelling==='flat'?NOTES_FLAT[idx]:NOTES_SHARP[idx];
+}
+
+/* given accidental mode, is chromatic index idx valid to quiz? */
+function idxAllowed(idx){
+  if(accidentalMode==='none') return NATURAL_IDX.includes(idx);
+  return true; /* sharps, flats, both — all 12 notes allowed */
+}
+
+function chromIdx(s,f){return (STRING_OPEN[s]+f)%12;}
+
+function makeKnowledge(){
+  const k={};
+  for(let s=0;s<6;s++)for(let f=0;f<=MAX_FRET;f++)
+    k[`${s}-${f}`]={s,f,correct:0,wrong:0,streak:0,due:0,seen:false,score:f<=5?1:0,avgTime:0,attempts:0};
+  return k;
+}
+function makeState(){return {knowledge:makeKnowledge(),totalAsked:0,totalCorrect:0,totalTime:0,currentStreak:0};}
+
+/* ── app state ── */
+let quizMode='practice';
+let expLevel='intermediate';
+let practiceStrings=new Set([0,1,2,3,4,5]);
+let practiceFretMin=0,practiceFretMax=MAX_FRET;
+let accidentalMode='sharps'; /* 'sharps'|'flats'|'both'|'none' */
+let states={quiz:makeState(),practice:makeState()};
+function st(){return states[quizMode];}
+function T_FAST(){return EXP[expLevel].tFast;}
+function T_SLOW(){return EXP[expLevel].tSlow;}
+function MASTERY(){return EXP[expLevel].mastery;}
+
+let answered=false,currentKey=null;
+let lastRevealNote=null,lastRevealWrong=false;
+let timerInterval=null,questionStart=0,pausedAt=0,paused=false;
+let autoAdvanceTimer=null;
+
+/* pending settings */
+let pendingQuizMode,pendingExp,pendingStrings,pendingFretMin,pendingFretMax,pendingAccidental;
+
+/* ── storage: safe wrapper (file:// on iOS blocks localStorage) ── */
+const storage = (function(){
+  try {
+    localStorage.setItem('__test__','1');
+    localStorage.removeItem('__test__');
+    return localStorage;
+  } catch(e) {
+    /* fallback: in-memory only */
+    const mem = {};
+    return {
+      getItem(k){ return mem[k]||null; },
+      setItem(k,v){ mem[k]=String(v); },
+      removeItem(k){ delete mem[k]; }
+    };
+  }
+})();
+
+/* ── persist ── */
+function save(){
+  try{storage.setItem(SAVE_KEY,JSON.stringify({
+    quizMode,expLevel,accidentalMode,
+    practiceStrings:[...practiceStrings],practiceFretMin,practiceFretMax,
+    states:{
+      quiz:{totalAsked:states.quiz.totalAsked,totalCorrect:states.quiz.totalCorrect,totalTime:states.quiz.totalTime,currentStreak:states.quiz.currentStreak,knowledge:states.quiz.knowledge},
+      practice:{totalAsked:states.practice.totalAsked,totalCorrect:states.practice.totalCorrect,totalTime:states.practice.totalTime,currentStreak:states.practice.currentStreak,knowledge:states.practice.knowledge}
+    }
+  }));}catch(e){}
+}
+
+(function load(){
+  try{
+    const raw=storage.getItem(SAVE_KEY);
+    if(!raw)return;
+    const d=JSON.parse(raw);
+    quizMode=d.quizMode||'practice';
+    expLevel=d.expLevel||'intermediate';
+    accidentalMode=d.accidentalMode||'sharps';
+    practiceStrings=new Set(d.practiceStrings||[0,1,2,3,4,5]);
+    practiceFretMin=d.practiceFretMin||0;
+    practiceFretMax=d.practiceFretMax!=null?d.practiceFretMax:MAX_FRET;
+    ['quiz','practice'].forEach(m=>{
+      if(d.states&&d.states[m]){
+        const ds=d.states[m];
+        states[m].totalAsked=ds.totalAsked||0;
+        states[m].totalCorrect=ds.totalCorrect||0;
+        states[m].totalTime=ds.totalTime||0;
+        states[m].currentStreak=ds.currentStreak||0;
+        if(ds.knowledge){
+          states[m].knowledge=ds.knowledge;
+          Object.values(states[m].knowledge).forEach(k=>{
+            if(k.avgTime===undefined)k.avgTime=0;
+            if(k.attempts===undefined)k.attempts=0;
+          });
+        }
+      }
+    });
+  }catch(e){}
+})();
+
+/* ── accidentals / note display ── */
+function activeAccidentalPool(){
+  /* returns array of 12 display names for choices, respecting mode */
+  if(accidentalMode==='sharps') return NOTES_SHARP;
+  if(accidentalMode==='flats')  return NOTES_FLAT;
+  if(accidentalMode==='none')   return NOTES_SHARP; /* only naturals used */
+  /* both: random per question, already set in perQuestionSpelling */
+  return perQuestionSpelling==='flat'?NOTES_FLAT:NOTES_SHARP;
+}
+
+function getChoices(correctIdx){
+  const pool=activeAccidentalPool();
+  const correctName=pool[correctIdx];
+  /* pool of wrong answers: only notes allowed by current mode */
+  const wrongPool=[];
+  for(let i=0;i<12;i++){
+    if(i===correctIdx)continue;
+    if(!idxAllowed(i))continue;
+    wrongPool.push(pool[i]);
+  }
+  shuffle(wrongPool);
+  return shuffle([correctName,...wrongPool.slice(0,3)]);
+}
+
+/* ── SRS ── */
+function activeKeys(){
+  return Object.keys(st().knowledge).filter(k=>{
+    const kn=st().knowledge[k];
+    if(quizMode==='practice'){
+      if(!practiceStrings.has(kn.s))return false;
+      if(kn.f<practiceFretMin||kn.f>practiceFretMax)return false;
+    }
+    return idxAllowed(chromIdx(kn.s,kn.f));
+  });
+}
+
+function weight(k){
+  const kn=st().knowledge[k];
+  if(kn.score>=MASTERY())return 0.05;
+  const base=1+kn.wrong*2-kn.correct*0.4;
+  const slow=kn.attempts>0?(kn.avgTime/1000)*0.3:0;
+  const urgency=Date.now()>=kn.due?1.6:0.5;
+  return Math.max(0.05,(base+slow)*urgency);
+}
+
+function pickQuestion(){
+  const keys=activeKeys();
+  if(!keys.length)return Object.keys(st().knowledge)[0];
+  const w=keys.map(k=>weight(k));
+  const tot=w.reduce((a,b)=>a+b,0);
+  let r=Math.random()*tot;
+  for(let i=0;i<keys.length;i++){r-=w[i];if(r<=0)return keys[i];}
+  return keys[keys.length-1];
+}
+
+function masteredCount(){return activeKeys().filter(k=>st().knowledge[k].score>=MASTERY()).length;}
+function activeTotal(){return activeKeys().length;}
+
+/* ── pause ── */
+function togglePause(){
+  if(answered)return; /* don't pause between questions */
+  paused=!paused;
+  const btn=document.getElementById('pause-btn');
+  const cover=document.getElementById('pause-cover');
+  const ansRow=document.getElementById('answer-row');
+  if(paused){
+    clearInterval(timerInterval);
+    pausedAt=performance.now()-questionStart;
+    btn.textContent='▶ Resume';
+    cover.classList.add('show');
+    ansRow.style.pointerEvents='none';ansRow.style.opacity='0.3';
+    document.getElementById('timer-val').className='paused';
+  } else {
+    questionStart=performance.now()-pausedAt;
+    cover.classList.remove('show');
+    ansRow.style.pointerEvents='';ansRow.style.opacity='';
+    btn.textContent='⏸ Pause';
+    timerInterval=setInterval(()=>{
+      const e=(performance.now()-questionStart)/1000;
+      document.getElementById('timer-val').textContent=e.toFixed(1);
+      document.getElementById('timer-val').className=e>=T_SLOW()/1000?'hesitant':e>=T_FAST()/1000?'slow':'';
+    },100);
+  }
+}
+
+/* ── drawing ── */
+function drawFretboard(targetS,targetF,revealNote,isWrong){
+  const outer=document.getElementById('fb-outer');
+  const canvas=document.getElementById('fb-canvas');
+  const availW=outer.clientWidth-28,availH=outer.clientHeight-20;
+  let cW=availW,cH=availW/NECK_ASPECT;
+  if(cH>availH){cH=availH;cW=availH*NECK_ASPECT;}
+  cW=Math.floor(cW);cH=Math.floor(cH);
+  canvas.width=cW;canvas.height=cH;
+  canvas.style.width=cW+'px';canvas.style.height=cH+'px';
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,cW,cH);
+  const dark=isDark();
+  const STRINGS=6,FRETS=MAX_FRET;
+  const PAD_L=Math.round(cW*0.042),PAD_R=Math.round(cW*0.012);
+  const PAD_T=Math.round(cH*0.12),PAD_B=Math.round(cH*0.22);
+  const fw=(cW-PAD_L-PAD_R)/FRETS,sh=(cH-PAD_T-PAD_B)/(STRINGS-1);
+  const nutC=dark?'#bbb':'#333',fretC=dark?'#3a3a3a':'#ddd';
+  const strC=dark?'#4a4a4a':'#c8c8c8',dotC=dark?'#3a3a3a':'#e0e0e0',lblC=dark?'#555':'#bbb';
+  ctx.fillStyle=dark?'#1e1400':'#f9f4e8';
+  ctx.fillRect(PAD_L,PAD_T,FRETS*fw,(STRINGS-1)*sh);
+  for(let f=0;f<=FRETS;f++){
+    const x=PAD_L+f*fw;
+    ctx.strokeStyle=f===0?nutC:fretC;ctx.lineWidth=f===0?Math.max(3,fw*0.12):1;
+    ctx.beginPath();ctx.moveTo(x,PAD_T);ctx.lineTo(x,PAD_T+(STRINGS-1)*sh);ctx.stroke();
+  }
+  for(let s=0;s<STRINGS;s++){
+    const y=PAD_T+s*sh;ctx.strokeStyle=strC;ctx.lineWidth=Math.max(0.5,0.5+s*0.35);
+    ctx.beginPath();ctx.moveTo(PAD_L,y);ctx.lineTo(PAD_L+FRETS*fw,y);ctx.stroke();
+  }
+  const dotR=Math.max(3,Math.min(sh*0.22,fw*0.18));
+  [3,5,7,9,12,15,17,19].forEach(f=>{
+    if(f>FRETS)return;
+    const x=PAD_L+(f-0.5)*fw;ctx.fillStyle=dotC;
+    if(f===12){ctx.beginPath();ctx.arc(x,PAD_T+1.5*sh,dotR,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(x,PAD_T+3.5*sh,dotR,0,Math.PI*2);ctx.fill();}
+    else{ctx.beginPath();ctx.arc(x,PAD_T+2.5*sh,dotR,0,Math.PI*2);ctx.fill();}
+  });
+  ctx.font=`${Math.max(9,Math.min(12,sh*0.55))}px -apple-system,sans-serif`;ctx.textAlign='right';
+  for(let s=0;s<STRINGS;s++){ctx.fillStyle=lblC;ctx.fillText(s+1,PAD_L-5,PAD_T+s*sh+4);}
+  const hx=targetF===0?PAD_L:PAD_L+(targetF-0.5)*fw;
+  const hy=PAD_T+targetS*sh;
+  const hr=Math.max(7,Math.min(sh*0.44,fw*0.36));
+  ctx.fillStyle=revealNote?(isWrong?'#E24B4A':'#1D9E75'):'#1D9E75';
+  ctx.beginPath();ctx.arc(hx,hy,hr,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font=`600 ${Math.max(9,hr*0.9)}px -apple-system,sans-serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(revealNote||'?',hx,hy);ctx.textBaseline='alphabetic';
+}
+
+function drawHeatmap(id){
+  const canvas=document.getElementById(id);if(!canvas)return;
+  const W=canvas.parentElement.clientWidth||600,H=canvas.height;
+  canvas.width=W;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  const dark=isDark();const GAP=1,LEFT=28,TOP=3;
+  const CW=Math.floor((W-LEFT-8)/(MAX_FRET+1))-GAP;
+  const CH=Math.max(7,Math.floor((H-TOP-14)/6)-GAP);
+  const lblC=dark?'#555':'#aaa';const knowledge=st().knowledge;
+  for(let s=0;s<6;s++){
+    ctx.fillStyle=lblC;ctx.font='9px -apple-system,sans-serif';ctx.textAlign='right';
+    ctx.fillText(s+1,LEFT-4,TOP+s*(CH+GAP)+CH-1);
+    for(let f=0;f<=MAX_FRET;f++){
+      const kn=knowledge[`${s}-${f}`];
+      let c;
+      if(!kn.seen)c=dark?'#2a2a2a':'#e8e8e8';
+      else if(kn.score>=MASTERY())c='#1D9E75';
+      else if(kn.wrong>kn.correct)c='#E24B4A';
+      else if(kn.attempts>0&&kn.avgTime>T_SLOW())c='#BA7517';
+      else c='#FAC775';
+      ctx.fillStyle=c;ctx.fillRect(LEFT+f*(CW+GAP),TOP+s*(CH+GAP),CW,CH);
+    }
+  }
+  ctx.fillStyle=lblC;ctx.font='9px -apple-system,sans-serif';ctx.textAlign='center';
+  for(let f=0;f<=MAX_FRET;f+=4)ctx.fillText(f,LEFT+f*(CW+GAP)+CW/2,TOP+6*(CH+GAP)+10);
+}
+
+/* ── quiz ── */
+function renderQuestion(){
+  if(paused)togglePause();
+  clearTimeout(autoAdvanceTimer);
+  answered=false;lastRevealNote=null;lastRevealWrong=false;
+  /* reset pause button */
+  document.getElementById('pause-btn').textContent='⏸ Pause';
+  document.getElementById('pause-cover').classList.remove('show');
+  document.getElementById('answer-row').style.pointerEvents='';
+  document.getElementById('answer-row').style.opacity='';
+
+  /* set spelling for this question if mode=both */
+  if(accidentalMode==='both') perQuestionSpelling=Math.random()<0.5?'sharp':'flat';
+  else if(accidentalMode==='flats') perQuestionSpelling='flat';
+  else perQuestionSpelling='sharp';
+
+  currentKey=pickQuestion();
+  const kn=st().knowledge[currentKey];kn.seen=true;
+  const idx=chromIdx(kn.s,kn.f);
+  const correctName=activeAccidentalPool()[idx];
+  const ch=getChoices(idx);
+
+  document.getElementById('prompt-text').textContent=`String ${kn.s+1}  ·  Fret ${kn.f}`;
+  document.getElementById('prompt-sub').textContent=kn.f===0?'open string':`(${STRING_NAMES[kn.s]})`;
+
+  const db=document.getElementById('diff-badge');
+  if(kn.score>=MASTERY()){db.textContent='mastered';db.style.background='var(--teal-l)';db.style.color='var(--teal-d)';}
+  else if(kn.correct+kn.wrong===0){db.textContent='new';db.style.background='var(--blue-l)';db.style.color='var(--blue-d)';}
+  else if(kn.wrong>kn.correct){db.textContent='struggling';db.style.background='var(--red-l)';db.style.color='var(--red-d)';}
+  else if(kn.attempts>0&&kn.avgTime>T_SLOW()){db.textContent='slow';db.style.background='var(--amber-l)';db.style.color='var(--amber-d)';}
+  else{db.textContent='learning';db.style.background='var(--amber-l)';db.style.color='var(--amber-d)';}
+
+  document.getElementById('feedback').textContent='';document.getElementById('feedback').style.color='';
+  const row=document.getElementById('answer-row');row.innerHTML='';
+  ch.forEach(name=>{
+    const btn=document.createElement('button');btn.className='ans-btn';btn.textContent=name;
+    btn.onclick=()=>handleAnswer(name,correctName,idx,kn);row.appendChild(btn);
+  });
+
+  drawFretboard(kn.s,kn.f,null,false);drawHeatmap('hm-canvas');updateTopBar();
+  clearInterval(timerInterval);questionStart=performance.now();
+  const tv=document.getElementById('timer-val');tv.textContent='0.0';tv.className='';
+  timerInterval=setInterval(()=>{
+    const e=(performance.now()-questionStart)/1000;
+    tv.textContent=e.toFixed(1);
+    tv.className=e>=T_SLOW()/1000?'hesitant':e>=T_FAST()/1000?'slow':'';
+  },100);
+}
+
+function handleAnswer(chosen,correct,correctIdx,kn){
+  if(answered||paused)return;answered=true;
+  clearInterval(timerInterval);
+  const elapsed=performance.now()-questionStart;
+  const ok=chosen===correct;
+  kn.attempts++;kn.avgTime=kn.avgTime+(elapsed-kn.avgTime)/kn.attempts;
+
+  document.querySelectorAll('.ans-btn').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===correct&&!ok)b.style.cssText='padding:10px 4px;font-size:18px;font-weight:600;border-radius:10px;cursor:default;text-align:center;background:#9FE1CB;border:1px solid #1D9E75;color:#085041;';
+    if(b.textContent===chosen)b.style.cssText=`padding:10px 4px;font-size:18px;font-weight:600;border-radius:10px;cursor:default;text-align:center;background:${ok?'#9FE1CB':'#F5C4B3'};border:1px solid ${ok?'#1D9E75':'#D85A30'};color:${ok?'#085041':'#4A1B0C'};`;
+  });
+
+  const s=st();s.totalAsked++;if(ok)s.totalCorrect++;s.totalTime+=elapsed;
+  const elapsedSec=(elapsed/1000).toFixed(1);
+
+  if(ok){
+    s.currentStreak++;kn.correct++;kn.streak++;
+    const delta=elapsed<=T_FAST()?1:elapsed<=T_SLOW()?0.5:0;
+    kn.score=Math.min(kn.score+delta,MASTERY()+2);
+    let due,fc,ft;
+    if(elapsed<=T_FAST()){due=Date.now()+(kn.score>=MASTERY()?900000:20000*Math.pow(2,kn.score));fc='#0F6E56';ft=s.currentStreak>=3?`✓ Correct! (${elapsedSec}s)  ${s.currentStreak} in a row`:`✓ Correct! (${elapsedSec}s)`;}
+    else if(elapsed<=T_SLOW()){due=Date.now()+15000;fc='#854F0B';ft=`✓ Correct, but slow (${elapsedSec}s)`;}
+    else{due=Date.now()+5000;fc='#993C1D';ft=`✓ Correct, but too slow (${elapsedSec}s) — coming back soon`;}
+    kn.due=due;document.getElementById('feedback').style.color=fc;document.getElementById('feedback').textContent=ft;
+    lastRevealNote=correct;lastRevealWrong=false;
+  }else{
+    s.currentStreak=0;kn.wrong++;kn.streak=0;kn.score=Math.max(0,kn.score-1);kn.due=Date.now()+8000;
+    document.getElementById('feedback').style.color='#993C1D';
+    document.getElementById('feedback').textContent=`✗ It's ${correct} (${elapsedSec}s) — string ${kn.s+1}, fret ${kn.f}`;
+    lastRevealNote=correct;lastRevealWrong=true;
+    drawFretboard(kn.s,kn.f,correct,true);
+  }
+
+  const tv=document.getElementById('timer-val');tv.textContent=elapsedSec;
+  tv.className=!ok||elapsed>T_SLOW()?'hesitant':elapsed>T_FAST()?'slow':'';
+  drawHeatmap('hm-canvas');updateTopBar();save();
+
+  autoAdvanceTimer=setTimeout(()=>{
+    if(masteredCount()>=activeTotal()) showCompletion();
+    else renderQuestion();
+  },2000);
+}
+
+/* ── top bar ── */
+function updateTopBar(){
+  const m=masteredCount(),tot=activeTotal(),s=st();
+  document.getElementById('s-asked').textContent=s.totalAsked;
+  document.getElementById('s-acc').textContent=s.totalAsked>0?Math.round(s.totalCorrect/s.totalAsked*100)+'%':'—';
+  document.getElementById('s-streak').textContent=s.currentStreak;
+  document.getElementById('mastered-pill').innerHTML=`<b>${m}</b>/${tot} mastered`;
+  document.getElementById('prog-fill').style.width=Math.round(m/Math.max(1,tot)*100)+'%';
+  document.getElementById('quiz-mode-pill').style.display=quizMode==='quiz'?'':'none';
+  document.getElementById('practice-mode-pill').style.display=quizMode==='practice'?'':'none';
+  document.getElementById('exp-pill').textContent=EXP[expLevel].label;
+  document.getElementById('summary-btn').style.display=s.totalAsked>0?'':'none';
+}
+
+function updateSpeedLegend(){
+  const f=T_FAST()/1000,s=T_SLOW()/1000;
+  document.getElementById('leg-fast').textContent=`fast (<${f}s)`;
+  document.getElementById('leg-slow').textContent=`slow (${f}–${s}s)`;
+  document.getElementById('leg-hesitant').textContent=`hesitant/wrong (>${s}s)`;
+}
+
+/* ── settings ── */
+function showSettings(){
+  clearInterval(timerInterval);clearTimeout(autoAdvanceTimer);
+  pendingQuizMode=quizMode;pendingExp=expLevel;
+  pendingStrings=[...practiceStrings];pendingFretMin=practiceFretMin;pendingFretMax=practiceFretMax;
+  pendingAccidental=accidentalMode;
+  refreshSettingsUI();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function hideSettings(){document.getElementById('settings-overlay').classList.remove('open');}
+
+function refreshSettingsUI(){
+  document.getElementById('seg-study').className='seg-btn'+(pendingQuizMode==='study'?' study-sel':'');
+  document.getElementById('seg-quiz').className='seg-btn'+(pendingQuizMode==='quiz'?' quiz-sel':'');
+  document.getElementById('seg-practice').className='seg-btn'+(pendingQuizMode==='practice'?' practice-sel':'');
+  /* show string/fret filters for both practice and study */
+  document.getElementById('practice-filters').style.display=(pendingQuizMode==='practice'||pendingQuizMode==='study')?'block':'none';
+  /* disable experience cards in study mode */
+  const isStudy=pendingQuizMode==='study';
+  ['beginner','intermediate','expert'].forEach(e=>{
+    const el=document.getElementById('mc-'+e);
+    el.classList.toggle('selected',!isStudy&&e===pendingExp);
+    el.style.opacity=isStudy?'0.35':'1';
+    el.style.pointerEvents=isStudy?'none':'';
+    el.style.cursor=isStudy?'default':'pointer';
+  });
+  buildStringButtons();buildAccidentalButtons();
+  document.getElementById('fret-min-sl').value=pendingFretMin;
+  document.getElementById('fret-max-sl').value=pendingFretMax;
+  updateFretDisplay();
+}
+
+function selectQuizMode(m){pendingQuizMode=m;refreshSettingsUI();}
+function selectExp(e){pendingExp=e;['beginner','intermediate','expert'].forEach(k=>document.getElementById('mc-'+k).classList.toggle('selected',k===e));}
+
+const ON='padding:8px 6px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;border:2px solid #0F6E56;background:#1D9E75;color:#fff;text-align:center;';
+const OFF='padding:8px 6px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--t2);text-align:center;';
+
+function buildStringButtons(){
+  const wrap=document.getElementById('string-btns');wrap.innerHTML='';
+  for(let s=0;s<6;s++){
+    const on=pendingStrings.includes(s);
+    const btn=document.createElement('button');
+    btn.textContent=`String ${s+1}`;btn.setAttribute('style',on?ON:OFF);
+    btn.onclick=()=>{
+      const idx=pendingStrings.indexOf(s);
+      if(idx>=0){if(pendingStrings.length>1){pendingStrings.splice(idx,1);btn.setAttribute('style',OFF);}}
+      else{pendingStrings.push(s);btn.setAttribute('style',ON);}
+    };
+    wrap.appendChild(btn);
+  }
+}
+
+function buildAccidentalButtons(){
+  const wrap=document.getElementById('accidental-btns');wrap.innerHTML='';
+  [['none','Naturals only'],['sharps','Sharps (C#)'],['flats','Flats (Db)'],['both','Both']].forEach(([val,label])=>{
+    const on=pendingAccidental===val;
+    const btn=document.createElement('button');
+    btn.textContent=label;btn.setAttribute('style',on?ON:OFF);
+    btn.onclick=()=>{
+      pendingAccidental=val;
+      wrap.querySelectorAll('button').forEach(b=>b.setAttribute('style',OFF));
+      btn.setAttribute('style',ON);
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+function updateFretDisplay(){
+  const lo=parseInt(document.getElementById('fret-min-sl').value);
+  const hi=parseInt(document.getElementById('fret-max-sl').value);
+  document.getElementById('fret-range-lbl').textContent=`${lo} – ${hi}`;
+  document.getElementById('fret-min-num').textContent=lo;
+  document.getElementById('fret-max-num').textContent=hi;
+  pendingFretMin=lo;pendingFretMax=hi;
+}
+
+function applySettingsAndStart(){
+  hideSettings();
+  const changed=pendingQuizMode!==quizMode||pendingExp!==expLevel||
+    pendingAccidental!==accidentalMode||
+    JSON.stringify([...practiceStrings].sort())!==JSON.stringify([...pendingStrings].sort())||
+    pendingFretMin!==practiceFretMin||pendingFretMax!==practiceFretMax;
+  quizMode=pendingQuizMode;expLevel=pendingExp;accidentalMode=pendingAccidental;
+  practiceStrings=new Set(pendingStrings);practiceFretMin=pendingFretMin;practiceFretMax=pendingFretMax;
+  if(quizMode==='study'){showStudy();return;}
+  if(changed){states[quizMode]=makeState();}
+  updateSpeedLegend();updateTopBar();save();
+  startCountdown();
+}
+
+/* ── study mode ── */
+function showStudy(){
+  const activeStr=[...practiceStrings].sort((a,b)=>a-b);
+  const fMin=practiceFretMin,fMax=practiceFretMax;
+  let desc='All strings';
+  if(activeStr.length<6) desc='Strings '+activeStr.map(s=>s+1).join(', ');
+  document.getElementById('study-title').textContent=`Study — ${desc} · Frets ${fMin}–${fMax}`;
+  /* show study view, hide shell */
+  document.getElementById('shell').style.display='none';
+  const sv=document.getElementById('study-view');
+  sv.style.display='flex';
+  setTimeout(()=>drawStudyFretboard(activeStr,fMin,fMax),30);
+}
+
+function hideStudy(){
+  document.getElementById('study-view').style.display='none';
+  document.getElementById('shell').style.display='flex';
+}
+
+function drawStudyFretboard(activeStrings,fMin,fMax){
+  const outer=document.getElementById('study-fb-outer');
+  const canvas=document.getElementById('study-canvas');
+  const dark=isDark();
+  const pool=accidentalMode==='flats'?NOTES_FLAT:NOTES_SHARP;
+
+  const ALL_STRINGS=[0,1,2,3,4,5];
+  const TOTAL_FRETS=MAX_FRET;
+
+  /* exact same sizing logic as drawFretboard */
+  const availW=outer.clientWidth-28;
+  const availH=outer.clientHeight-20;
+  let cW=availW,cH=availW/NECK_ASPECT;
+  if(cH>availH){cH=availH;cW=availH*NECK_ASPECT;}
+  cW=Math.floor(cW);cH=Math.floor(cH);
+
+  canvas.width=cW;canvas.height=cH;
+  canvas.style.width=cW+'px';canvas.style.height=cH+'px';
+
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,cW,cH);
+
+  /* exact same padding/spacing as drawFretboard */
+  const PAD_L=Math.round(cW*0.042),PAD_R=Math.round(cW*0.012);
+  const PAD_T=Math.round(cH*0.12),PAD_B=Math.round(cH*0.22);
+  const FW=(cW-PAD_L-PAD_R)/TOTAL_FRETS;
+  const SH=(cH-PAD_T-PAD_B)/5;
+
+  const nutC=dark?'#bbb':'#333',fretC=dark?'#3a3a3a':'#ddd';
+  const strC=dark?'#4a4a4a':'#c8c8c8',dotC=dark?'#3a3a3a':'#e0e0e0',lblC=dark?'#555':'#bbb';
+  const dimBg=dark?'rgba(0,0,0,0.5)':'rgba(242,242,238,0.72)';
+
+  /* board background */
+  ctx.fillStyle=dark?'#1e1400':'#f9f4e8';
+  ctx.fillRect(PAD_L,PAD_T,TOTAL_FRETS*FW,5*SH);
+
+  /* fret lines */
+  for(let f=0;f<=TOTAL_FRETS;f++){
+    const x=PAD_L+f*FW;
+    ctx.strokeStyle=f===0?nutC:fretC;ctx.lineWidth=f===0?Math.max(3,FW*0.12):1;
+    ctx.beginPath();ctx.moveTo(x,PAD_T);ctx.lineTo(x,PAD_T+5*SH);ctx.stroke();
+  }
+
+  /* strings */
+  ALL_STRINGS.forEach(s=>{
+    const y=PAD_T+s*SH;
+    ctx.strokeStyle=strC;ctx.lineWidth=Math.max(0.5,0.5+s*0.35);
+    ctx.beginPath();ctx.moveTo(PAD_L,y);ctx.lineTo(PAD_L+TOTAL_FRETS*FW,y);ctx.stroke();
+  });
+
+  /* neck position dots */
+  const neckDotR=Math.max(3,Math.min(SH*0.22,FW*0.18));
+  [3,5,7,9,12,15,17,19].forEach(f=>{
+    if(f>TOTAL_FRETS)return;
+    const x=PAD_L+(f-0.5)*FW;ctx.fillStyle=dotC;
+    if(f===12){
+      ctx.beginPath();ctx.arc(x,PAD_T+1.5*SH,neckDotR,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(x,PAD_T+3.5*SH,neckDotR,0,Math.PI*2);ctx.fill();
+    } else {
+      ctx.beginPath();ctx.arc(x,PAD_T+2.5*SH,neckDotR,0,Math.PI*2);ctx.fill();
+    }
+  });
+
+  /* string number labels */
+  ctx.font=`${Math.max(9,Math.min(12,SH*0.55))}px -apple-system,sans-serif`;
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  ALL_STRINGS.forEach(s=>{
+    ctx.fillStyle=activeStrings.includes(s)?lblC:dark?'#333':'#e0e0e0';
+    ctx.fillText(s+1,PAD_L-5,PAD_T+s*SH);
+  });
+
+  /* dim overlay — cover inactive areas as clean full-height bands per string row.
+     Fret f's visual slot spans from fret line (f-1) to fret line f, i.e. x = PAD_L+(f-1)*FW to PAD_L+f*FW.
+     Fret 0 (open string) sits at the nut (x=PAD_L); we don't dim it separately since
+     it's handled by the full-row dim or included in the fret loop below. */
+  ctx.fillStyle=dimBg;
+  ALL_STRINGS.forEach(s=>{
+    const inStr=activeStrings.includes(s);
+    const rowTop=s===0?PAD_T:PAD_T+s*SH-SH*0.5;
+    const rowBot=s===5?PAD_T+5*SH:PAD_T+s*SH+SH*0.5;
+    const rowH=rowBot-rowTop;
+    if(!inStr){
+      ctx.fillRect(PAD_L,rowTop,TOTAL_FRETS*FW,rowH);
+    } else {
+      /* dim frets outside [fMin, fMax].
+         Fret f>0 occupies the slot from PAD_L+(f-1)*FW to PAD_L+f*FW.
+         Fret 0 sits at PAD_L (the nut), width = FW. */
+      for(let f=0;f<=TOTAL_FRETS;f++){
+        if(f>=fMin&&f<=fMax)continue;
+        const slotX=f===0?PAD_L:PAD_L+(f-1)*FW;
+        ctx.fillRect(slotX,rowTop,FW,rowH);
+      }
+    }
+  });
+
+  /* note dots — active strings × active fret range only */
+  const hr=Math.max(7,Math.min(SH*0.44,FW*0.36));
+  activeStrings.forEach(s=>{
+    for(let f=fMin;f<=fMax;f++){
+      const idx=chromIdx(s,f);
+      if(!idxAllowed(idx))continue;
+      const noteName=pool[idx];
+      const isAccidental=ACCIDENTAL_IDX.includes(idx);
+      const x=f===0?PAD_L:PAD_L+(f-0.5)*FW;
+      const y=PAD_T+s*SH;
+      ctx.fillStyle=isAccidental?'#6C5CE7':'#1D9E75';
+      ctx.beginPath();ctx.arc(x,y,hr,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';
+      ctx.font=`600 ${Math.max(7,hr*(noteName.length>1?0.7:0.88))}px -apple-system,sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(noteName,x,y);
+    }
+  });
+  ctx.textBaseline='alphabetic';
+
+  /* legend */
+  const accSpan=accidentalMode!=='none'
+    ?'<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6C5CE7;margin-right:5px;vertical-align:middle;"></span>Accidental</span>'
+    :'';
+  document.getElementById('study-legend').innerHTML=
+    '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1D9E75;margin-right:5px;vertical-align:middle;"></span>Natural</span> '
+    +accSpan
+    +' <span style="color:var(--t3);">Dimmed = outside your selection</span>';
+}
+
+/* ── countdown ── */
+function startCountdown(){
+  const overlay=document.getElementById('countdown-overlay');
+  const num=document.getElementById('countdown-num');
+  overlay.classList.add('open');
+  let count=3;num.textContent=count;num.style.transform='scale(1)';num.style.opacity='1';
+  const tick=()=>{
+    num.style.transform='scale(1.2)';num.style.opacity='0.3';
+    setTimeout(()=>{
+      count--;
+      if(count<=0){overlay.classList.remove('open');renderQuestion();return;}
+      num.textContent=count;num.style.transform='scale(1)';num.style.opacity='1';
+      setTimeout(tick,900);
+    },200);
+  };
+  setTimeout(tick,700);
+}
+
+/* ── practice summary ── */
+function showSummary(){
+  const knowledge=st().knowledge;
+  const seen=Object.values(knowledge).filter(k=>k.attempts>0);
+  if(!seen.length){
+    document.getElementById('summary-body').innerHTML='<p style="color:var(--t3);font-size:14px;padding:8px 0">No data yet — answer some questions first.</p>';
+    document.getElementById('summary-overlay').classList.add('open');
+    return;
+  }
+
+  const pool=activeAccidentalPool();
+  const tFast=T_FAST(),tSlow=T_SLOW();
+
+  /* ── per-string summary (one line each) ── */
+  const stringRows=Array.from({length:6},(_,i)=>{
+    const nodes=seen.filter(k=>k.s===i);
+    if(!nodes.length)return null;
+    const avgT=nodes.reduce((a,k)=>a+k.avgTime,0)/nodes.length;
+    const wrongs=nodes.reduce((a,k)=>a+k.wrong,0);
+    const mastered=nodes.filter(k=>k.score>=MASTERY()).length;
+    return{s:i,avgT,wrongs,mastered,total:nodes.length};
+  }).filter(Boolean).sort((a,b)=>b.avgT-a.avgT);
+
+  /* ── per fret-zone summary ── */
+  const zoneRows=[[0,4,'Open–4'],[5,9,'5–9'],[10,14,'10–14'],[15,20,'15–20']].map(([lo,hi,label])=>{
+    const nodes=seen.filter(k=>k.f>=lo&&k.f<=hi);
+    if(!nodes.length)return null;
+    const avgT=nodes.reduce((a,k)=>a+k.avgTime,0)/nodes.length;
+    const wrongs=nodes.reduce((a,k)=>a+k.wrong,0);
+    return{label,avgT,wrongs,count:nodes.length};
+  }).filter(Boolean).sort((a,b)=>b.avgT-a.avgT);
+
+  /* ── top weak positions (max 5) ── */
+  const weakPos=seen
+    .filter(k=>k.wrong>0||(k.avgTime>tSlow&&k.attempts>=2))
+    .sort((a,b)=>(b.wrong*3+b.avgTime/1000)-(a.wrong*3+a.avgTime/1000))
+    .slice(0,5);
+
+  function zoneCls(avgT,wrongs,total){
+    if(avgT>tSlow||wrongs>total*0.4)return'urgent';
+    if(avgT>tFast||wrongs>total*0.15)return'slow-z';
+    return'good';
+  }
+
+  let html='';
+
+  /* strings table */
+  html+=`<div class="sec-lbl" style="margin-bottom:6px;">Strings</div>
+  <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:1rem;">
+    <tr style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;">
+      <td style="padding:3px 6px 3px 0;">String</td>
+      <td style="padding:3px 6px;text-align:right;">Avg</td>
+      <td style="padding:3px 6px;text-align:right;">✗</td>
+      <td style="padding:3px 6px;text-align:right;">Mastered</td>
+      <td style="padding:3px 0;text-align:right;">Status</td>
+    </tr>`;
+  stringRows.forEach(r=>{
+    const cls=zoneCls(r.avgT,r.wrongs,r.total);
+    const dot=cls==='urgent'?'#E24B4A':cls==='slow-z'?'#BA7517':'#1D9E75';
+    html+=`<tr style="border-top:1px solid var(--border);">
+      <td style="padding:5px 6px 5px 0;">String ${r.s+1} <span style="color:var(--t3);font-size:11px">${STRING_NAMES[r.s]}</span></td>
+      <td style="padding:5px 6px;text-align:right;font-variant-numeric:tabular-nums;">${(r.avgT/1000).toFixed(1)}s</td>
+      <td style="padding:5px 6px;text-align:right;color:#E24B4A;">${r.wrongs}</td>
+      <td style="padding:5px 6px;text-align:right;">${r.mastered}/${r.total}</td>
+      <td style="padding:5px 0;text-align:right;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};"></span></td>
+    </tr>`;
+  });
+  html+='</table>';
+
+  /* fret zones */
+  html+=`<div class="sec-lbl" style="margin-bottom:6px;">Fret zones</div>
+  <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:1rem;">
+    <tr style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;">
+      <td style="padding:3px 6px 3px 0;">Zone</td>
+      <td style="padding:3px 6px;text-align:right;">Avg</td>
+      <td style="padding:3px 6px;text-align:right;">✗</td>
+      <td style="padding:3px 0;text-align:right;">Status</td>
+    </tr>`;
+  zoneRows.forEach(z=>{
+    const cls=zoneCls(z.avgT,z.wrongs,z.count);
+    const dot=cls==='urgent'?'#E24B4A':cls==='slow-z'?'#BA7517':'#1D9E75';
+    html+=`<tr style="border-top:1px solid var(--border);">
+      <td style="padding:5px 6px 5px 0;">Frets ${z.label}</td>
+      <td style="padding:5px 6px;text-align:right;font-variant-numeric:tabular-nums;">${(z.avgT/1000).toFixed(1)}s</td>
+      <td style="padding:5px 6px;text-align:right;color:#E24B4A;">${z.wrongs}</td>
+      <td style="padding:5px 0;text-align:right;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};"></span></td>
+    </tr>`;
+  });
+  html+='</table>';
+
+  /* weak spots */
+  if(weakPos.length){
+    html+=`<div class="sec-lbl" style="margin-bottom:6px;">Focus on these</div>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      <tr style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:0.06em;">
+        <td style="padding:3px 6px 3px 0;">Position</td>
+        <td style="padding:3px 6px;text-align:center;">Note</td>
+        <td style="padding:3px 6px;text-align:right;">Avg</td>
+        <td style="padding:3px 0;text-align:right;">✓ / ✗</td>
+      </tr>`;
+    weakPos.forEach(k=>{
+      html+=`<tr style="border-top:1px solid var(--border);">
+        <td style="padding:5px 6px 5px 0;">Str ${k.s+1} · Fret ${k.f}</td>
+        <td style="padding:5px 6px;text-align:center;font-weight:600;">${pool[chromIdx(k.s,k.f)]}</td>
+        <td style="padding:5px 6px;text-align:right;font-variant-numeric:tabular-nums;">${(k.avgTime/1000).toFixed(1)}s</td>
+        <td style="padding:5px 0;text-align:right;"><span style="color:#1D9E75">${k.correct}</span>/<span style="color:#E24B4A">${k.wrong}</span></td>
+      </tr>`;
+    });
+    html+='</table>';
+  }
+
+  /* legend */
+  html+=`<div style="display:flex;gap:14px;margin-top:1rem;font-size:11px;color:var(--t3);">
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D9E75;margin-right:4px;"></span>on track</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#BA7517;margin-right:4px;"></span>slow</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E24B4A;margin-right:4px;"></span>needs work</span>
+  </div>`;
+
+  document.getElementById('summary-body').innerHTML=html;
+  document.getElementById('summary-overlay').classList.add('open');
+}
+function hideSummary(){document.getElementById('summary-overlay').classList.remove('open');}
+
+/* ── stats ── */
+function showStats(){
+  const s=st(),m=masteredCount(),tot=activeTotal();
+  document.getElementById('stats-title').textContent=`Stats — ${quizMode==='quiz'?'Quiz':'Practice'} mode`;
+  document.getElementById('sv-asked').textContent=s.totalAsked;
+  document.getElementById('sv-acc').textContent=s.totalAsked>0?Math.round(s.totalCorrect/s.totalAsked*100)+'%':'—';
+  document.getElementById('sv-mastered').textContent=`${m}/${tot}`;
+  document.getElementById('sv-avg').textContent=s.totalAsked>0?(s.totalTime/s.totalAsked/1000).toFixed(1)+'s':'—';
+  const knowledge=st().knowledge;
+  const pool=activeAccidentalPool();
+  const weak=Object.values(knowledge).filter(k=>k.seen&&(k.wrong>0||(k.attempts>0&&k.avgTime>T_FAST())))
+    .sort((a,b)=>(b.wrong*3+(b.attempts>0?b.avgTime/1000:0)-b.correct)-(a.wrong*3+(a.attempts>0?a.avgTime/1000:0)-a.correct)).slice(0,10);
+  document.getElementById('weak-list').innerHTML=weak.length
+    ?weak.map(k=>{const sc=k.avgTime>T_SLOW()?'#E24B4A':k.avgTime>T_FAST()?'#BA7517':'#1D9E75';
+      return `<div class="weak-item"><span>String ${k.s+1} · Fret ${k.f} <span style="color:var(--t3);font-size:11px">(${STRING_NAMES[k.s]})</span></span><span style="font-size:12px;display:flex;gap:8px"><span style="color:${sc};font-weight:600">${k.attempts>0?(k.avgTime/1000).toFixed(1)+'s':''}</span><span><span style="color:#1D9E75">${k.correct}✓</span> <span style="color:#E24B4A">${k.wrong}✗</span></span><span style="color:var(--t3)">${pool[chromIdx(k.s,k.f)]}</span></span></div>`;
+    }).join(''):'<div style="font-size:13px;color:var(--t3);padding:6px 0">Nothing to worry about yet!</div>';
+  document.getElementById('string-bars').innerHTML=[0,1,2,3,4,5].map(s2=>{
+    const m2=Object.values(knowledge).filter(k=>k.s===s2&&k.score>=MASTERY()).length;
+    const avg=Object.values(knowledge).filter(k=>k.s===s2&&k.attempts>0);
+    const avgStr=avg.length>0?(avg.reduce((a,k)=>a+k.avgTime,0)/avg.length/1000).toFixed(1)+'s avg':'';
+    return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>String ${s2+1} <span style="color:var(--t3)">${STRING_NAMES[s2]}</span></span><span style="color:var(--t3)">${m2}/21 mastered ${avgStr}</span></div><div style="height:5px;background:var(--border);border-radius:3px"><div style="height:5px;background:#1D9E75;border-radius:3px;width:${Math.round(m2/21*100)}%"></div></div></div>`;
+  }).join('');
+  document.getElementById('stats-overlay').classList.add('open');
+  setTimeout(()=>drawHeatmap('hm2-canvas'),50);
+}
+function hideStats(){document.getElementById('stats-overlay').classList.remove('open');}
+
+function resetProgress(){
+  if(!confirm(`Reset ${quizMode} mode progress?`))return;
+  states[quizMode]=makeState();save();hideStats();
+  pendingQuizMode=quizMode;pendingExp=expLevel;pendingStrings=[...practiceStrings];
+  pendingFretMin=practiceFretMin;pendingFretMax=practiceFretMax;pendingAccidental=accidentalMode;
+  refreshSettingsUI();document.getElementById('settings-overlay').classList.add('open');
+}
+
+/* ── completion ── */
+function showCompletion(){
+  const s=st(),m=masteredCount(),tot=activeTotal();
+  const expOrder=['beginner','intermediate','expert'];
+  const expIdx=expOrder.indexOf(expLevel);
+  document.getElementById('co-asked').textContent=s.totalAsked;
+  document.getElementById('co-acc').textContent=s.totalAsked>0?Math.round(s.totalCorrect/s.totalAsked*100)+'%':'—';
+  document.getElementById('co-avg').textContent=s.totalAsked>0?(s.totalTime/s.totalAsked/1000).toFixed(1)+'s':'—';
+  document.getElementById('complete-title').textContent=quizMode==='quiz'?'Fretboard mastered!':'Practice set complete!';
+  document.getElementById('complete-sub').textContent=`All ${tot} positions mastered at ${EXP[expLevel].label} level.`;
+  const actions=document.getElementById('complete-actions');actions.innerHTML='';
+  const mbtn=(label,color,fn)=>{const b=document.createElement('button');b.textContent=label;b.style.cssText=`padding:11px;font-size:14px;font-weight:600;border-radius:8px;cursor:pointer;border:none;background:${color};color:#fff;`;b.onclick=fn;actions.appendChild(b);};
+  mbtn('View summary','#534AB7',()=>{document.getElementById('complete-overlay').classList.remove('open');showSummary();});
+  if(quizMode==='practice') mbtn('Expand practice scope','#534AB7',()=>{document.getElementById('complete-overlay').classList.remove('open');showSettings();});
+  if(expIdx<expOrder.length-1){const next=expOrder[expIdx+1];mbtn(`Level up to ${EXP[next].label}`,'#1D9E75',()=>{document.getElementById('complete-overlay').classList.remove('open');expLevel=next;states[quizMode]=makeState();updateSpeedLegend();updateTopBar();save();startCountdown();});}
+  mbtn('Keep going','#444',()=>{document.getElementById('complete-overlay').classList.remove('open');renderQuestion();});
+  document.getElementById('complete-overlay').classList.add('open');
+}
+
+/* ── resize ── */
+let rsTimer;
+window.addEventListener('resize',()=>{clearTimeout(rsTimer);rsTimer=setTimeout(()=>{
+  if(document.getElementById('study-view').style.display==='flex'){
+    const activeStr=[...practiceStrings].sort((a,b)=>a-b);
+    drawStudyFretboard(activeStr,practiceFretMin,practiceFretMax);
+  } else if(currentKey){
+    const kn=st().knowledge[currentKey];drawFretboard(kn.s,kn.f,lastRevealNote,lastRevealWrong);
+  }
+  drawHeatmap('hm-canvas');
+},60);});
+
+/* ── global error handler (surfaces silent crashes on iOS) ── */
+window.onerror=function(msg,src,line,col,err){
+  document.body.insertAdjacentHTML('beforeend',
+    '<div style="position:fixed;top:0;left:0;right:0;background:#E24B4A;color:#fff;padding:12px 16px;font-size:13px;z-index:9999;font-family:monospace;">'
+    +'Error: '+msg+' (line '+line+')</div>');
+  return false;
+};
+
+/* ── iOS viewport height fix ── */
+function setAppHeight(){
+  document.documentElement.style.setProperty('--app-height', window.innerHeight+'px');
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', ()=>setTimeout(setAppHeight, 100));
+
+/* ── init ── */
+try {
+  updateSpeedLegend();updateTopBar();
+  setTimeout(()=>{
+    try {
+      pendingQuizMode=quizMode;pendingExp=expLevel;pendingStrings=[...practiceStrings];
+      pendingFretMin=practiceFretMin;pendingFretMax=practiceFretMax;pendingAccidental=accidentalMode;
+      refreshSettingsUI();
+      document.getElementById('settings-overlay').classList.add('open');
+    } catch(e) { window.onerror(e.message,'init-timeout',0,0,e); }
+  },0);
+} catch(e) { window.onerror(e.message,'init',0,0,e); }
+</script>
+</body>
+</html>
