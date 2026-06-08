@@ -95,8 +95,10 @@
       width: 100%; display: block; box-sizing: border-box;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       line-height: 1.2; margin: 0;
+      transition: background 0.08s, border-color 0.08s, transform 0.08s;
     }
-    .ans-btn:active { opacity: 0.7; }
+    .ans-btn:active { background: #1D9E75 !important; border-color: #0F6E56 !important; color: #fff !important; transform: scale(0.95); }
+    .ans-btn.tapped { background: #1D9E75 !important; border-color: #0F6E56 !important; color: #fff !important; transform: scale(0.95); }
 
     /* ── bottom ── */
     #bottom-row { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-height: 34px; }
@@ -810,11 +812,16 @@ function renderQuestion(){
 function handleAnswer(chosen,correct,correctIdx,kn){
   if(answered||paused)return;
   answered=true;
+  /* immediate visual feedback so user knows tap registered */
+  var btns=document.querySelectorAll('.ans-btn');
+  for(var i=0;i<btns.length;i++){
+    if(btns[i].textContent===chosen) btns[i].classList.add('tapped');
+    btns[i].disabled=true;
+  }
   clearInterval(timerInterval);
   var elapsed=performance.now()-questionStart;
   var ok=chosen===correct;
   kn.attempts++;kn.avgTime=kn.avgTime+(elapsed-kn.avgTime)/kn.attempts;
-  var btns=document.querySelectorAll('.ans-btn');
   for(var i=0;i<btns.length;i++){
     btns[i].disabled=true;
     if(btns[i].textContent===correct&&!ok){btns[i].style.background='#9FE1CB';btns[i].style.borderColor='#1D9E75';btns[i].style.color='#085041';}
@@ -1198,12 +1205,16 @@ function showCompletion(){
     b.style.background=color;b.addEventListener('click',fn);actions.appendChild(b);
   }
   mbtn('View summary','#534AB7',function(){document.getElementById('complete-overlay').classList.remove('open');showSummary();});
+  mbtn('Try again','#1D9E75',function(){
+    document.getElementById('complete-overlay').classList.remove('open');
+    states['practice']=makeState();updateTopBar();save();startCountdown();
+  });
   mbtn('Expand scope','#534AB7',function(){document.getElementById('complete-overlay').classList.remove('open');showSettings();});
   if(expIdx<expOrder.length-1){
     var next=expOrder[expIdx+1];
-    mbtn('Level up to '+EXP[next].label,'#1D9E75',function(){
+    mbtn('Level up to '+EXP[next].label,'#0F6E56',function(){
       document.getElementById('complete-overlay').classList.remove('open');
-      expLevel=next;states[quizMode]=makeState();updateSpeedLegend();updateTopBar();save();startCountdown();
+      expLevel=next;states['practice']=makeState();updateSpeedLegend();updateTopBar();save();startCountdown();
     });
   }
   mbtn('Keep going','#444',function(){document.getElementById('complete-overlay').classList.remove('open');renderQuestion();});
