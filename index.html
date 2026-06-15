@@ -538,17 +538,11 @@
     .home-title .fret-word { color: var(--hs-inlay); }
     .home-title .nerd-word { color: var(--hs-copper); }
 
-    .home-subtitle {
-      font-family: 'Barlow Condensed', -apple-system, sans-serif;
-      font-size: 0.75rem; font-weight: 600;
-      letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--hs-inlay2); margin-bottom: 2px;
-    }
     .home-tagline {
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
-      font-size: 0.75rem; font-weight: 600;
-      letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--hs-signal); margin-bottom: 28px;
+      font-size: 1.1rem; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--hs-inlay2); margin-bottom: 28px;
     }
 
     /* Instrument toggle */
@@ -624,10 +618,22 @@
 
     /* Company footer on home screen */
     .home-footer {
-      margin-top: 24px;
-      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--hs-silver); opacity: 0.4;
+      margin-top: 24px; width: 100%; max-width: 480px;
+      border-top: 1px solid var(--hs-fret);
+      padding-top: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px;
+    }
+    .home-footer-logo {
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
+      font-weight: 800; font-size: 1rem; letter-spacing: 0.03em;
+      color: var(--hs-inlay);
+    }
+    .home-footer-logo span { color: var(--hs-copper); }
+    .home-footer-copy {
+      font-family: 'Barlow Condensed', -apple-system, sans-serif;
+      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--hs-silver); opacity: 0.5;
     }
 
     /* ═══════════════════════════════════════════════
@@ -674,7 +680,6 @@
 ═══════════════════════════════════════════════ -->
 <div id="home-screen">
   <div class="home-title"><span class="fret-word">Fret</span><span class="nerd-word">Nerd</span></div>
-  <div class="home-subtitle">Your fretboard IQ starts here</div>
   <div class="home-tagline">Nerd out. Play better.</div>
 
   <!-- instrument toggle -->
@@ -732,7 +737,10 @@
 
   </div>
 
-  <div class="home-footer">Tilted Iron LLC · Cortez, Colorado · fretnerd.com</div>
+  <div class="home-footer">
+    <span class="home-footer-logo">Fret<span>Nerd</span></span>
+    <span class="home-footer-copy">© 2026 Tilted Iron LLC</span>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════
