@@ -484,14 +484,16 @@
 
     /* Website color tokens (home screen only) */
     #home-screen {
-      --hs-ebony:   #141414;
-      --hs-ebony2:  #1E1E1E;
-      --hs-ebony3:  #2A2A2A;
-      --hs-inlay:   #F0E6C8;
-      --hs-copper:  #C87941;
-      --hs-silver:  #8A9BA8;
-      --hs-signal:  #7FD14E;
-      --hs-border:  rgba(240,230,200,0.12);
+      --hs-ebony:   #111110;
+      --hs-ebony2:  #191917;
+      --hs-ebony3:  #222220;
+      --hs-inlay:   #EDE0C0;
+      --hs-inlay2:  #C8BAA0;
+      --hs-copper:  #C47838;
+      --hs-silver:  #7A8E9A;
+      --hs-signal:  #72C442;
+      --hs-fret:    #302C28;
+      --hs-border:  #302C28;
     }
 
     #home-screen {
@@ -529,8 +531,8 @@
     /* Two-tone FretNerd wordmark matching website */
     .home-title {
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
-      font-size: 48px; font-weight: 800;
-      letter-spacing: -0.5px; margin-bottom: 6px; margin-top: 8px;
+      font-size: clamp(3rem, 10vw, 4.5rem); font-weight: 800;
+      letter-spacing: 0.03em; margin-bottom: 4px; margin-top: 0;
       line-height: 1;
     }
     .home-title .fret-word { color: var(--hs-inlay); }
@@ -538,91 +540,93 @@
 
     .home-subtitle {
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
-      font-size: 13px; font-weight: 600;
-      letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--hs-silver); margin-bottom: 4px;
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--hs-inlay2); margin-bottom: 2px;
     }
     .home-tagline {
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
-      font-size: 13px; font-weight: 600;
-      letter-spacing: 0.2em; text-transform: uppercase;
-      color: var(--hs-signal); margin-bottom: 32px;
-      opacity: 0.8;
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--hs-signal); margin-bottom: 28px;
     }
 
     /* Instrument toggle */
     .inst-toggle {
       display: flex; width: 100%; max-width: 480px;
-      border: 1px solid var(--hs-border); border-radius: 10px;
-      overflow: hidden; margin-bottom: 24px; flex-shrink: 0;
-      background: var(--hs-ebony2);
+      border: 1px solid var(--hs-fret); border-radius: 2px;
+      overflow: hidden; margin-bottom: 0; flex-shrink: 0;
     }
     .inst-btn {
-      flex: 1; padding: 11px 8px; font-size: 14px; font-weight: 700;
+      flex: 1; padding: 10px 8px; font-size: 0.85rem; font-weight: 700;
       border: none; cursor: pointer;
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em; text-transform: uppercase;
       -webkit-appearance: none; -webkit-tap-highlight-color: transparent;
       background: transparent; color: var(--hs-silver);
       transition: background 0.15s, color 0.15s;
     }
     .inst-btn.active { background: var(--hs-copper); color: var(--hs-ebony); }
-    .inst-btn + .inst-btn { border-left: 1px solid var(--hs-border); }
+    .inst-btn + .inst-btn { border-left: 1px solid var(--hs-fret); }
 
-    /* Module cards */
     .module-grid {
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex; flex-direction: column; gap: 0;
       width: 100%; max-width: 480px;
+      border-top: 1px solid var(--hs-fret);
     }
     .module-card {
       background: var(--hs-ebony2);
-      border: 1px solid var(--hs-border);
-      border-radius: 12px; padding: 16px 18px;
-      cursor: pointer; display: flex; align-items: center; gap: 14px;
+      border-bottom: 1px solid var(--hs-fret);
+      padding: 14px 16px;
+      cursor: pointer; display: flex; align-items: flex-start; gap: 14px;
       -webkit-tap-highlight-color: transparent;
-      transition: border-color 0.15s, background 0.15s;
+      transition: background 0.15s;
       text-align: left; width: 100%;
       font-family: var(--font); -webkit-appearance: none;
+      border-radius: 0;
     }
-    .module-card.available:hover  { border-color: var(--hs-signal); background: var(--hs-ebony3); }
-    .module-card.available:active { border-color: var(--hs-signal); background: var(--hs-ebony3); }
+    .module-card.available:hover  { background: var(--hs-ebony3); }
+    .module-card.available:active { background: var(--hs-ebony3); }
     .module-card.coming-soon { opacity: 0.6; cursor: default; pointer-events: none; }
     .module-icon {
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
-      font-size: 22px; font-weight: 800;
+      font-size: 2rem; font-weight: 800;
       flex-shrink: 0; line-height: 1;
-      color: var(--hs-copper); width: 28px; text-align: center;
+      color: var(--hs-silver); width: 32px; text-align: center;
+      align-self: flex-start; padding-top: 2px;
     }
+    .module-card.available .module-icon { color: var(--hs-copper); }
     .module-info { flex: 1; }
     .module-name {
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
-      font-size: 17px; font-weight: 700;
-      color: var(--hs-inlay); margin-bottom: 2px;
-      letter-spacing: 0.02em;
+      font-size: clamp(1.4rem, 5vw, 2rem); font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.01em;
+      color: var(--hs-inlay); margin-bottom: 2px; line-height: 1;
     }
-    .module-desc { font-size: 12px; color: var(--hs-silver); line-height: 1.4; }
+    .module-desc { font-size: 0.9rem; color: var(--hs-inlay2); line-height: 1.5; font-weight: 300; }
     .module-badge {
-      font-size: 10px; font-weight: 700; padding: 3px 9px;
-      border-radius: 999px; flex-shrink: 0; letter-spacing: 0.06em;
+      font-size: 0.7rem; font-weight: 700; padding: 3px 9px;
+      border-radius: 2px; flex-shrink: 0; letter-spacing: 0.1em;
       text-transform: uppercase;
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
+      align-self: flex-start;
     }
     .badge-available {
-      background: rgba(127,209,78,0.15);
+      background: rgba(114,196,66,0.12);
       color: var(--hs-signal);
-      border: 1px solid rgba(127,209,78,0.4);
+      border: 1px solid rgba(114,196,66,0.3);
     }
     .badge-soon {
-      background: rgba(200,121,65,0.15);
+      background: rgba(196,120,56,0.1);
       color: var(--hs-copper);
-      border: 1px solid rgba(200,121,65,0.3);
+      border: 1px solid rgba(196,120,56,0.25);
     }
 
     /* Company footer on home screen */
     .home-footer {
-      margin-top: 20px;
-      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(138,155,168,0.4);
+      margin-top: 24px;
+      font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--hs-silver); opacity: 0.4;
       font-family: 'Barlow Condensed', -apple-system, sans-serif;
     }
 
@@ -674,7 +678,7 @@
   <div class="home-tagline">Nerd out. Play better.</div>
 
   <!-- instrument toggle -->
-  <div class="inst-toggle">
+  <div class="inst-toggle" style="margin-bottom:20px;">
     <button id="inst-guitar" class="inst-btn active" onclick="selectInstrument('guitar')">🎸 Guitar</button>
     <button id="inst-bass"   class="inst-btn"        onclick="selectInstrument('bass')">🎵 Bass</button>
   </div>
