@@ -52,7 +52,7 @@
     /* ═══════════════════════════════════════════════
        APP SHELL
     ═══════════════════════════════════════════════ */
-    #app { display: flex; flex-direction: column; width: 100%; height: 100%; padding: var(--pad); gap: var(--gap); }
+    #app { display: flex; flex-direction: column; width: 100%; height: 100%; padding: var(--pad); gap: var(--gap); position: relative; }
 
     /* ═══════════════════════════════════════════════
        COMMON COMPONENTS
@@ -138,8 +138,11 @@
        TOPBAR
     ═══════════════════════════════════════════════ */
     #topbar {
-      display: flex; align-items: center; gap: 8px;
-      flex-shrink: 0; flex-wrap: nowrap;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
     }
     #topbar-home {
       font-size: 18px; background: none; border: none; cursor: pointer;
@@ -148,10 +151,47 @@
     }
     #topbar-module-name {
       font-size: 13px; font-weight: 700; color: var(--text);
-      flex: 1; text-align: center; white-space: nowrap; overflow: hidden;
+      text-align: center; white-space: nowrap; overflow: hidden;
+      min-width: 0; text-overflow: ellipsis;
     }
     #topbar-right {
-      display: flex; align-items: center; gap: 4px; flex: 1; justify-content: flex-end;
+      display: flex; align-items: center; gap: 4px; justify-content: flex-end;
+    }
+
+    #topbar-overflow-btn,
+    .topbar-menu { display: none; }
+
+    #app.simple-module #topbar-overflow-btn,
+    #app.simple-module .topbar-wide-only { display: none; }
+
+    .topbar-menu {
+      position: absolute;
+      top: 44px;
+      right: 8px;
+      z-index: 50;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      min-width: 140px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .topbar-menu.open { display: flex; flex-direction: column; }
+
+    .topbar-menu-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px; font-size: 13px; font-weight: 600;
+      background: none; border: none; border-radius: 6px;
+      color: var(--text2); text-align: left; cursor: pointer;
+      font-family: var(--font); -webkit-tap-highlight-color: transparent;
+    }
+    .topbar-menu-item:hover, .topbar-menu-item:active {
+      background: var(--border); color: var(--text);
+    }
+
+    @media (max-width: 500px) {
+      #topbar-right .topbar-wide-only { display: none; }
+      #topbar-overflow-btn { display: flex; }
     }
     /* ═══════════════════════════════════════════════
        SVG ICON BUTTONS
@@ -184,6 +224,9 @@
     #prog-bg { flex: 1; min-width: 40px; height: 5px; background: var(--border); border-radius: 3px; }
     #prog-fill { height: 5px; background: var(--teal); border-radius: 3px; width: 0%; transition: width 0.5s; }
     #mastered-pill { background: var(--teal-lt); border-color: var(--teal); color: var(--teal-txt); }
+    #stats-practice-pills { display: none; align-items: center; gap: 6px; }
+    #stats-practice-pills.show { display: flex; }
+    .stats-divider { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; }
 
     /* ═══════════════════════════════════════════════
        MODE TABS
@@ -537,7 +580,7 @@
     }
     #prompt-left { flex: 1; }
     #prompt-text { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; color: var(--text); }
-    #prompt-sub  { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    #prompt-sub  { font-size: 14px; color: var(--text2); margin-top: 2px; }
     .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
     #timer-display { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; min-width: 52px; }
     #timer-val { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; color: var(--text); }
@@ -587,7 +630,7 @@
     #feedback { font-size: 14px; font-weight: 600; flex: 1; }
     #hm-wrap { flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 12px; }
     #hm-canvas { display: block; width: 100%; }
-    #speed-legend { display: flex; gap: 12px; margin-top: 5px; font-size: 11px; color: var(--text3); flex-wrap: wrap; }
+    #speed-legend { display: flex; gap: 12px; margin-top: 5px; font-size: 13px; color: var(--text2); flex-wrap: wrap; }
     .sl-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 3px; vertical-align: middle; }
 
     /* ═══════════════════════════════════════════════
@@ -661,99 +704,7 @@
        FLOATING START BUTTON
     ═══════════════════════════════════════════════ */
     /* start-bar removed — Start button now inside settings panel footer */
-    /* ═══════════════════════════════════════════════
-       STUDY NECK — HTML grid (replaces canvas)
-    ═══════════════════════════════════════════════ */
-    #study-neck {
-      display: inline-block;
-      background: #1e1400;
-      border-radius: 6px;
-      padding: 4px 4px 2px 4px;
-      white-space: nowrap;
-    }
-    .neck-string {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      white-space: nowrap;
-    }
-    .neck-fret {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .neck-string {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      position: relative;
-    }
-    .neck-fret {
-      width: 38px; height: 38px;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-      border-right: 1px solid #3a3a3a;
-    }
-    .neck-fret.nut { border-right: 3px solid #bbb; }
-    .neck-fret.open { border-right: 3px solid #bbb; width: 20px; }
-    /* string line runs through the middle of each fret cell */
-    .neck-string::after {
-      content: '';
-      position: absolute;
-      left: 0; right: 0;
-      top: 50%; transform: translateY(-50%);
-      height: 1px;
-      background: #4a4a4a;
-      pointer-events: none; z-index: 0;
-    }
-    .neck-dot {
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700;
-      color: #fff; position: relative; z-index: 1;
-      flex-shrink: 0;
-      line-height: 1;
-    }
-    .neck-dot.natural    { background: #1D9E75; }
-    .neck-dot.accidental { background: #6C5CE7; }
-    .neck-dot.inactive   { background: transparent; }
-    .neck-fret-num {
-      font-size: 9px; color: #555;
-      text-align: center; margin-top: 2px;
-      font-family: -apple-system, sans-serif;
-    }
-    /* position marker dots */
-    .neck-fret.marker::before {
-      content: '';
-      position: absolute;
-      bottom: 3px; left: 50%; transform: translateX(-50%);
-      width: 5px; height: 5px;
-      border-radius: 50%; background: #3a3a3a;
-    }
-    /* fret numbers row */
-    .neck-fret-labels {
-      display: flex; flex-direction: row;
-      margin-top: 2px;
-    }
-    .neck-fret-label {
-      width: 38px; flex-shrink: 0;
-      font-size: 9px; color: #666;
-      text-align: center;
-      font-family: -apple-system, sans-serif;
-    }
-    .neck-fret-label.open { width: 20px; }
-
     /* light mode overrides */
-    @media (prefers-color-scheme: light) {
-      #study-neck { background: #f9f4e8; }
-      .neck-string::after { background: #c8c8c8; }
-      .neck-fret { border-right-color: #ddd; }
-      .neck-fret.nut { border-right-color: #333; }
-      .neck-fret.marker::before { background: #e0e0e0; }
-      .neck-fret-label { color: #aaa; }
-    }
     @media (max-width: 500px) and (orientation: portrait) {
       #answer-row { grid-template-columns: repeat(2,1fr); gap: 6px; }
       .ans-btn { padding: 16px 4px; font-size: 20px; }
@@ -784,12 +735,6 @@
       .panel { max-width: 700px; }
     }
 
-    /* topbar single-row on non-portrait */
-    @media (min-width: 501px) {
-      #topbar { flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center; }
-      #topbar-stats { flex: 1; }
-      #topbar-controls { flex-shrink: 0; }
-    }
     /* ═══════════════════════════════════════════════
        HOME SCREEN — branded to match fretnerd.com
     ═══════════════════════════════════════════════ */
@@ -822,6 +767,9 @@
       isolation: isolate;
     }
     #home-screen.show { display: flex; }
+    @media (max-height: 500px) and (orientation: landscape) {
+      #home-screen { justify-content: flex-start; padding-top: 16px; }
+    }
 
     /* dot grid background — diagonal pattern */
     #home-screen::before {
@@ -971,14 +919,14 @@
     }
     .tour-icon { font-size: 56px; margin-bottom: 16px; line-height: 1; }
     .tour-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
-    .tour-body { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 28px; }
+    .tour-body { font-size: 16px; color: var(--text2); line-height: 1.6; margin-bottom: 28px; }
     .tour-body b { color: var(--text); }
     .tour-dots { display: flex; gap: 7px; margin-bottom: 24px; }
     .tour-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.2s; }
     .tour-dot.active { background: var(--teal); }
     .tour-btns { display: flex; gap: 10px; width: 100%; }
     .tour-skip {
-      flex: 1; padding: 11px; font-size: 13px; font-weight: 500;
+      flex: 1; padding: 11px; font-size: 15px; font-weight: 500;
       background: none; border: 1px solid var(--border); border-radius: 10px;
       cursor: pointer; color: var(--text2); font-family: var(--font);
       -webkit-appearance: none;

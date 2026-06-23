@@ -5,6 +5,7 @@ function launchChords() {
   currentModule = 'chords';
   chordStage    = 1;
   chordCompletedStages = [];
+  el('app').classList.add('simple-module');
   hideHome();
   el('mode-tabs').style.display         = 'none';
   el('study-content').style.display     = 'none';
@@ -23,6 +24,7 @@ function exitChords() {
   el('fundamentals-content').style.display = 'none';
   el('mode-tabs').style.display            = '';
   el('stats-row').style.display            = '';
+  el('app').classList.remove('simple-module');
   currentModule = null;
 }
 

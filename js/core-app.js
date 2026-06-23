@@ -229,6 +229,11 @@ function makeKnowledge() {
 function T_FAST()  { return EXP[expLevel].tFast; }
 function T_SLOW()  { return EXP[expLevel].tSlow; }
 function MASTERY() { return EXP[expLevel].mastery; }
+function zDot(avgT, wrongs, total) {
+  if (avgT > T_SLOW() || wrongs > total * 0.4) return '#E24B4A';
+  if (avgT > T_FAST() || wrongs > total * 0.15) return '#BA7517';
+  return '#1D9E75';
+}
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION 5: ACCIDENTAL / NOTE LOGIC
@@ -434,68 +439,113 @@ function drawFretboard(containerId, canvasId, targetS, targetF, revealNote, isWr
 
 /* study fretboard: shows note labels on selected positions, full neck visible */
 function drawStudyFretboard(activeStrings, fMin, fMax) {
-  var neck = el('study-neck');
-  if (!neck) return;
+  var outer  = el('study-fb-outer');
+  var canvas = el('study-canvas');
+  if (!outer || !canvas) return;
 
-  var MARKER_FRETS = [3,5,7,9,12,15,17,19];
-  var html = '';
+  var aW = outer.clientWidth - 8;
+  if (aW <= 10) aW = window.innerWidth - 8;
 
-  /* build one row per string */
+  var cW = Math.max(200, Math.floor(aW));
+  var cH = Math.max(40,  Math.floor(cW / NECK_ASPECT));
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.round(cW * dpr);
+  canvas.height = Math.round(cH * dpr);
+  canvas.style.width  = cW + 'px';
+  canvas.style.height = cH + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cW, cH);
+  var dark = isDark();
+
+  var PL = Math.round(cW * 0.042), PR = Math.round(cW * 0.012);
+  var PT = Math.round(cH * 0.12),  PB = Math.round(cH * 0.22);
+  var fw = (cW - PL - PR) / MAX_FRET;
+  var sh = (cH - PT - PB) / (NUM_STRINGS - 1);
+
+  /* board background */
+  ctx.fillStyle = dark ? '#1e1400' : '#f9f4e8';
+  ctx.fillRect(PL, PT, MAX_FRET * fw, (NUM_STRINGS - 1) * sh);
+
+  /* fret lines */
+  for (var f = 0; f <= MAX_FRET; f++) {
+    var x = PL + f * fw;
+    ctx.strokeStyle = (f === 0) ? (dark ? '#bbb' : '#333') : (dark ? '#3a3a3a' : '#ddd');
+    ctx.lineWidth   = (f === 0) ? Math.max(3, fw * 0.12) : 1;
+    ctx.beginPath(); ctx.moveTo(x, PT); ctx.lineTo(x, PT + (NUM_STRINGS - 1) * sh); ctx.stroke();
+  }
+
+  /* strings */
   for (var s = 0; s < NUM_STRINGS; s++) {
-    var isActive = activeStrings.indexOf(s) >= 0;
-    html += '<div class="neck-string">';
+    var y = PT + s * sh;
+    ctx.strokeStyle = dark ? '#4a4a4a' : '#c8c8c8';
+    ctx.lineWidth   = Math.max(0.5, 0.5 + s * 0.35);
+    ctx.beginPath(); ctx.moveTo(PL, y); ctx.lineTo(PL + MAX_FRET * fw, y); ctx.stroke();
+  }
 
-    /* string label cell */
-    html += '<div style="width:16px;flex-shrink:0;font-size:9px;color:' +
-      (isActive ? '#666' : '#333') + ';text-align:right;padding-right:3px;z-index:1;">' +
-      (s + 1) + '</div>';
-
-    /* fret cells: open string + frets 1–MAX_FRET */
-    for (var f = 0; f <= MAX_FRET; f++) {
-      var isOpen   = f === 0;
-      var isMarker = !isOpen && MARKER_FRETS.indexOf(f) >= 0;
-      var inRange  = f >= fMin && f <= fMax && isActive;
-      var idx      = chromIdx(s, f);
-      var allowed  = idxAllowed(idx);
-      var isAcc    = ACCIDENTAL_IDX.indexOf(idx) >= 0;
-      var name     = spellNote(idx);
-
-      var cellCls  = 'neck-fret' + (isOpen ? ' open' : '') + (isMarker ? ' marker' : '');
-      html += '<div class="' + cellCls + '">';
-
-      if (inRange && allowed) {
-        var dotCls = 'neck-dot ' + (isAcc ? 'accidental' : 'natural');
-        html += '<div class="' + dotCls + '">' + name + '</div>';
-      }
-
-      html += '</div>';
+  /* position marker dots */
+  var dr = Math.max(3, Math.min(sh * 0.22, fw * 0.18));
+  [3,5,7,9,12,15,17,19].forEach(function(fd) {
+    if (fd > MAX_FRET) return;
+    var mx = PL + (fd - 0.5) * fw;
+    ctx.fillStyle = dark ? '#3a3a3a' : '#e0e0e0';
+    if (fd === 12) {
+      ctx.beginPath(); ctx.arc(mx, PT + (NUM_STRINGS-1)*sh*0.3, dr, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(mx, PT + (NUM_STRINGS-1)*sh*0.7, dr, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(mx, PT + (NUM_STRINGS-1)*sh*0.5, dr, 0, Math.PI * 2); ctx.fill();
     }
+  });
 
-    html += '</div>';
+  /* string number labels */
+  ctx.font = Math.max(9, Math.min(12, sh * 0.55)) + 'px -apple-system,sans-serif';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = dark ? '#555' : '#bbb';
+  for (var s2 = 0; s2 < NUM_STRINGS; s2++) {
+    ctx.fillText(s2 + 1, PL - 5, PT + s2 * sh);
   }
 
-  /* fret number labels row */
-  html += '<div class="neck-fret-labels">';
-  html += '<div style="width:16px;flex-shrink:0;"></div>'; /* spacer for string label */
-  for (var fn = 0; fn <= MAX_FRET; fn++) {
-    var lblCls = 'neck-fret-label' + (fn === 0 ? ' open' : '');
-    var lbl    = fn === 0 ? '' : (fn % 2 === 1 ? fn : '');
-    html += '<div class="' + lblCls + '">' + lbl + '</div>';
+  /* fret number labels (odd frets) */
+  ctx.font = Math.max(8, Math.min(11, fw * 0.38)) + 'px -apple-system,sans-serif';
+  ctx.fillStyle = dark ? '#888' : '#999';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  for (var fn = 1; fn <= MAX_FRET; fn++) {
+    if (fn % 2 === 1) {
+      ctx.fillText(fn, PL + (fn - 0.5) * fw, PT + (NUM_STRINGS - 1) * sh + PB * 0.55);
+    }
   }
-  html += '</div>';
 
-  neck.innerHTML = html;
+  /* note dots for in-range positions */
+  var hr = Math.max(7, Math.min(sh * 0.44, fw * 0.36));
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (var si = 0; si < NUM_STRINGS; si++) {
+    if (activeStrings.indexOf(si) < 0) continue;
+    for (var fi = 0; fi <= MAX_FRET; fi++) {
+      if (fi < fMin || fi > fMax) continue;
+      var idx = chromIdx(si, fi);
+      if (!idxAllowed(idx)) continue;
+      var isAcc = ACCIDENTAL_IDX.indexOf(idx) >= 0;
+      var nx = (fi === 0) ? PL : PL + (fi - 0.5) * fw;
+      var ny = PT + si * sh;
+      ctx.fillStyle = isAcc ? '#6C5CE7' : '#1D9E75';
+      ctx.beginPath(); ctx.arc(nx, ny, hr, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = '600 ' + Math.max(7, Math.round(hr * 0.85)) + 'px -apple-system,sans-serif';
+      ctx.fillText(spellNote(idx), nx, ny);
+    }
+  }
 
-  /* legend */
   var accSpan = (accHasSharps(accidentalMode) || accHasFlats(accidentalMode))
     ? '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6C5CE7;margin-right:5px;vertical-align:middle;"></span>Accidental</span>'
     : '';
-  var swipeHint = isPhonePortrait()
-    ? '<span style="margin-left:auto;font-size:11px;color:var(--text3);">← swipe →</span>'
-    : '';
+  var HINT_SVG = '<svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:middle;margin:0 1px"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/><circle cx="7" cy="5" r="2" fill="var(--surface)"/><circle cx="13" cy="10" r="2" fill="var(--surface)"/><circle cx="7" cy="15" r="2" fill="var(--surface)"/></svg>';
+  var summarySpan = '<span style="margin-left:auto;text-align:right;line-height:1.5;">'
+    + buildSettingsSummary()
+    + '<br><span style="font-size:14px;">Tap ' + HINT_SVG + ' to change</span>'
+    + '</span>';
   el('study-legend').innerHTML =
     '<span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1D9E75;margin-right:5px;vertical-align:middle;"></span>Natural</span> '
-    + accSpan + swipeHint;
+    + accSpan + summarySpan;
 }
 
 function drawHeatmap(canvasId) {
@@ -511,11 +561,11 @@ function drawHeatmap(canvasId) {
   var GAP = 1, LEFT = 28, TOP = 3;
   var CW  = Math.floor((W - LEFT - 8) / (MAX_FRET + 1)) - GAP;
   var CH  = Math.max(7, Math.floor((H - TOP - 14) / NUM_STRINGS) - GAP);
-  var lc  = dark ? '#555' : '#aaa';
+  var lc  = dark ? '#999' : '#888';
 
   for (var s = 0; s < NUM_STRINGS; s++) {
     ctx.fillStyle = lc;
-    ctx.font = '9px -apple-system,sans-serif';
+    ctx.font = '11px -apple-system,sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(s + 1, LEFT - 4, TOP + s * (CH + GAP) + CH - 1);
     for (var f = 0; f <= MAX_FRET; f++) {
@@ -577,10 +627,6 @@ function layoutApp() {
 
   app.style.padding = phone ? '6px 8px' : '10px 14px';
   app.style.gap     = phone ? '5px' : '8px';
-
-  /* ── stats row: hide module name on portrait phone ── */
-  var modName = el('topbar-module-name');
-  if (modName) modName.style.display = portrait ? 'none' : '';
 
   /* ── stats row: hide some pills on landscape ── */
   var mastEl = el('mastered-pill'), expEl = el('exp-pill');
@@ -650,7 +696,7 @@ function renderQuestion() {
 
   /* reset pause UI */
   var pb = el('pause-btn');
-  if (pb) pb.innerHTML = ICONS.pause + '<span id="pause-label">Pause</span>';
+  if (pb) pb.innerHTML = ICONS.pause;
   var pc = el('pause-cover');
   if (pc) pc.classList.remove('show');
   var ar = el('answer-row');
@@ -806,8 +852,6 @@ function updateTopBar() {
     if (e) e.innerHTML  = '<b>' + m + '</b>/' + tot;
     setStyle('prog-fill','width', Math.round(m / Math.max(1, tot) * 100) + '%');
     setText('exp-pill',  EXP[expLevel].label);
-    var sb = el('summary-btn');
-    if (sb) sb.style.display = totalAsked > 0 ? '' : 'none';
   } catch(err) {}
 }
 
@@ -833,7 +877,7 @@ function togglePause() {
   if (paused) {
     clearInterval(timerInterval);
     pausedAt = performance.now() - questionStart;
-    if (btn) btn.innerHTML = ICONS.play + '<span id="pause-label">Resume</span>';
+    if (btn) btn.innerHTML = ICONS.play;
     if (cover) cover.classList.add('show');
     if (row)   { row.style.pointerEvents = 'none'; row.style.opacity = '0.3'; }
     var tv = el('timer-val'); if (tv) tv.className = 'paused';
@@ -841,7 +885,7 @@ function togglePause() {
     questionStart = performance.now() - pausedAt;
     if (cover) cover.classList.remove('show');
     if (row)   { row.style.pointerEvents = ''; row.style.opacity = ''; }
-    if (btn) btn.innerHTML = ICONS.pause + '<span id="pause-label">Pause</span>';
+    if (btn) btn.innerHTML = ICONS.pause;
     var tv2 = el('timer-val');
     timerInterval = setInterval(function() {
       var e = (performance.now() - questionStart) / 1000;
@@ -849,6 +893,29 @@ function togglePause() {
     }, 100);
   }
 }
+
+function toggleTopbarMenu() {
+  var menu = el('topbar-menu');
+  var btn = el('topbar-overflow-btn');
+  var isOpen = menu.classList.contains('open');
+  if (isOpen) { closeTopbarMenu(); }
+  else {
+    menu.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+}
+function closeTopbarMenu() {
+  el('topbar-menu').classList.remove('open');
+  el('topbar-overflow-btn').setAttribute('aria-expanded', 'false');
+}
+document.addEventListener('click', function(e) {
+  var menu = el('topbar-menu');
+  var btn = el('topbar-overflow-btn');
+  if (!menu || !menu.classList.contains('open')) return;
+  if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+    closeTopbarMenu();
+  }
+});
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION 12: SETTINGS
@@ -894,9 +961,8 @@ function refreshSettingsUI() {
   var isStudy = quizMode === 'study';
   el('practice-filters').style.display = 'block';
 
-  /* show/hide Start button — study applies immediately, practice needs Start */
   var startBtn = el('settings-start-btn');
-  if (startBtn) startBtn.style.display = isStudy ? 'none' : '';
+  if (startBtn) startBtn.style.display = '';
 
   /* dim experience cards in study mode */
   ['beginner','intermediate','expert'].forEach(function(e2) {
@@ -987,7 +1053,7 @@ function updateFretDisplay() {
   setText('fret-max-num',   pendingFretMax);
 }
 
-function applySettingsAndStart() {
+function applySettings() {
   expLevel        = pendingExp;
   accidentalMode  = pendingAccidental;
   var changed = JSON.stringify([...practiceStrings].sort()) !== JSON.stringify([...pendingStrings].sort())
@@ -1001,9 +1067,15 @@ function applySettingsAndStart() {
   updateSpeedLegend();
   updateTopBar();
   saveState();
-  hidePracticeIdle();
-  switchTab('practice');
-  startCountdown();
+
+  /* refresh whichever tab is currently visible */
+  var sc = el('study-content');
+  if (sc && sc.style.display === 'flex') {
+    var activeStr = [...practiceStrings].sort(function(a,b){return a-b;});
+    drawStudyFretboard(activeStr, practiceFretMin, practiceFretMax);
+  } else {
+    showPracticeIdle();
+  }
 }
 
 function startPracticeSession() {
@@ -1014,10 +1086,34 @@ function startPracticeSession() {
   startCountdown();
 }
 
+function buildSettingsSummary() {
+  var parts = [];
+  var allStr = [...practiceStrings].sort(function(a,b){return a-b;});
+  if (allStr.length === NUM_STRINGS) {
+    parts.push('All strings');
+  } else {
+    parts.push('Strings ' + allStr.map(function(s){return s+1;}).join(', '));
+  }
+  if (practiceFretMin === 0 && practiceFretMax === MAX_FRET) {
+    parts.push('Full neck');
+  } else {
+    parts.push('Frets ' + practiceFretMin + '–' + practiceFretMax);
+  }
+  var hasN = accHasNaturals(accidentalMode), hasS = accHasSharps(accidentalMode), hasF = accHasFlats(accidentalMode);
+  if (hasN && hasS && hasF)        parts.push('All notes');
+  else if (hasN && !hasS && !hasF) parts.push('Naturals only');
+  else if (hasN && hasS)           parts.push('Naturals + sharps');
+  else if (hasN && hasF)           parts.push('Naturals + flats');
+  else                             parts.push('Accidentals only');
+  return parts.join(' · ');
+}
+
 function showPracticeIdle() {
   /* shown when Practice tab is active but no session has started */
   setText('prompt-text', 'Ready to drill?');
-  setText('prompt-sub',  'Tap Start Practice or use ⚙ to configure');
+  var HINT_SVG = '<svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:middle;margin:0 1px"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/><circle cx="7" cy="5" r="2" fill="var(--surface)"/><circle cx="13" cy="10" r="2" fill="var(--surface)"/><circle cx="7" cy="15" r="2" fill="var(--surface)"/></svg>';
+  setHtml('prompt-sub', buildSettingsSummary()
+    + '<br><span style="font-size:14px;">Tap ' + HINT_SVG + ' to change settings</span>');
   var db = el('diff-badge'); if (db) { db.textContent = ''; db.className = 'badge'; }
   var tv = el('timer-val'); if (tv) { tv.textContent = '—'; tv.className = ''; }
   var ar = el('answer-row'); if (ar) ar.innerHTML = '';
@@ -1085,17 +1181,32 @@ function showStats() {
       +'<span style="color:var(--text3);">'+pool[chromIdx(k.s,k.f)]+'</span></span></div>';
   }).join('') : '<div style="font-size:13px;color:var(--text3);padding:6px 0;">Nothing to worry about yet!</div>');
 
-  var strArr=[]; for(var si=0;si<NUM_STRINGS;si++) strArr.push(si);
-  setHtml('string-bars', strArr.map(function(s) {
-    var m2   = Object.values(knowledge).filter(function(k){ return k.s===s && k.score>=MASTERY(); }).length;
-    var avgs = Object.values(knowledge).filter(function(k){ return k.s===s && k.attempts>0; });
-    var avgStr = avgs.length > 0 ? (avgs.reduce(function(a,k){return a+k.avgTime;},0)/avgs.length/1000).toFixed(1)+'s avg' : '';
-    return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">'
-      +'<span>String '+(s+1)+' <span style="color:var(--text3);">'+STRING_NAMES[s]+'</span></span>'
-      +'<span style="color:var(--text3);">'+m2+'/'+(MAX_FRET+1)+' '+avgStr+'</span></div>'
-      +'<div style="height:5px;background:var(--border);border-radius:3px;">'
-      +'<div style="height:5px;background:#1D9E75;border-radius:3px;width:'+Math.round(m2/(MAX_FRET+1)*100)+'%;"></div></div></div>';
-  }).join(''));
+  var strIdxs=[]; for(var si=0;si<NUM_STRINGS;si++) strIdxs.push(si);
+  var strRows = strIdxs.map(function(i) {
+    var nodes = Object.values(knowledge).filter(function(k){ return k.s===i && k.attempts>0; });
+    if (!nodes.length) return null;
+    return { s:i, avgT: nodes.reduce(function(a,k){return a+k.avgTime;},0)/nodes.length,
+      wrongs: nodes.reduce(function(a,k){return a+k.wrong;},0),
+      mastered: nodes.filter(function(k){return k.score>=MASTERY();}).length, total:nodes.length };
+  }).filter(Boolean).sort(function(a,b){ return b.avgT-a.avgT; });
+  setHtml('string-bars', '<table class="sum-table"><thead><tr><th>String</th><th>Avg</th><th>Wrong</th><th>Mastered</th><th></th></tr></thead><tbody>'
+    + strRows.map(function(r){ var d=zDot(r.avgT,r.wrongs,r.total);
+      return '<tr><td>String '+(r.s+1)+' <span style="color:var(--text3);font-size:11px;">'+STRING_NAMES[r.s]+'</span></td>'
+        +'<td>'+(r.avgT/1000).toFixed(1)+'s</td><td style="color:#E24B4A;">'+r.wrongs+'</td>'
+        +'<td>'+r.mastered+'/'+r.total+'</td><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+d+'"></span></td></tr>';
+    }).join('') + '</tbody></table>');
+
+  var zoneRows = [[0,4,'Open-4'],[5,9,'5-9'],[10,14,'10-14'],[15,20,'15-20']].map(function(z) {
+    var nodes = Object.values(knowledge).filter(function(k){ return k.attempts>0 && k.f>=z[0] && k.f<=z[1]; });
+    if (!nodes.length) return null;
+    return { label:z[2], avgT: nodes.reduce(function(a,k){return a+k.avgTime;},0)/nodes.length,
+      wrongs: nodes.reduce(function(a,k){return a+k.wrong;},0), count:nodes.length };
+  }).filter(Boolean).sort(function(a,b){ return b.avgT-a.avgT; });
+  setHtml('zone-table', '<table class="sum-table"><thead><tr><th>Zone</th><th>Avg</th><th>Wrong</th><th></th></tr></thead><tbody>'
+    + zoneRows.map(function(z){ var d=zDot(z.avgT,z.wrongs,z.count);
+      return '<tr><td>Frets '+z.label+'</td><td>'+(z.avgT/1000).toFixed(1)+'s</td>'
+        +'<td style="color:#E24B4A;">'+z.wrongs+'</td><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+d+'"></span></td></tr>';
+    }).join('') + '</tbody></table>');
 
   el('stats-overlay').classList.add('open');
   setTimeout(function(){ drawHeatmap('hm2-canvas'); }, 50);
@@ -1108,73 +1219,6 @@ function resetProgress() {
   totalAsked = 0; totalCorrect = 0; totalTime = 0; currentStreak = 0;
   saveState(); hideStats(); showSettings();
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   SECTION 16: SUMMARY
-═══════════════════════════════════════════════════════════════ */
-function showSummary() {
-  var seen = Object.values(knowledge).filter(function(k){ return k.attempts > 0; });
-  if (!seen.length) {
-    setHtml('summary-body', '<p style="color:var(--text3);font-size:14px;padding:8px 0;">No data yet.</p>');
-    el('summary-overlay').classList.add('open');
-    return;
-  }
-  var pool = notePool();
-  function zDot(avgT, wrongs, total) {
-    if (avgT > T_SLOW() || wrongs > total * 0.4) return '#E24B4A';
-    if (avgT > T_FAST() || wrongs > total * 0.15) return '#BA7517';
-    return '#1D9E75';
-  }
-  var strIdxs=[]; for(var si=0;si<NUM_STRINGS;si++) strIdxs.push(si);
-  var strRows = strIdxs.map(function(i) {
-    var nodes = seen.filter(function(k){ return k.s===i; });
-    if (!nodes.length) return null;
-    return { s:i, avgT: nodes.reduce(function(a,k){return a+k.avgTime;},0)/nodes.length,
-      wrongs: nodes.reduce(function(a,k){return a+k.wrong;},0),
-      mastered: nodes.filter(function(k){return k.score>=MASTERY();}).length, total:nodes.length };
-  }).filter(Boolean).sort(function(a,b){ return b.avgT-a.avgT; });
-
-  var zoneRows = [[0,4,'Open-4'],[5,9,'5-9'],[10,14,'10-14'],[15,20,'15-20']].map(function(z) {
-    var nodes = seen.filter(function(k){ return k.f>=z[0] && k.f<=z[1]; });
-    if (!nodes.length) return null;
-    return { label:z[2], avgT: nodes.reduce(function(a,k){return a+k.avgTime;},0)/nodes.length,
-      wrongs: nodes.reduce(function(a,k){return a+k.wrong;},0), count:nodes.length };
-  }).filter(Boolean).sort(function(a,b){ return b.avgT-a.avgT; });
-
-  var weakPos = seen.filter(function(k){ return k.wrong>0||(k.avgTime>T_SLOW()&&k.attempts>=2); })
-    .sort(function(a,b){ return (b.wrong*3+b.avgTime/1000)-(a.wrong*3+a.avgTime/1000); }).slice(0,5);
-
-  var html = '<div class="sec-lbl" style="margin-bottom:6px;">Strings</div>'
-    +'<table class="sum-table"><thead><tr><th>String</th><th>Avg</th><th>Wrong</th><th>Mastered</th><th></th></tr></thead><tbody>'
-    +strRows.map(function(r){ var d=zDot(r.avgT,r.wrongs,r.total);
-      return '<tr><td>String '+(r.s+1)+' <span style="color:var(--text3);font-size:11px;">'+STRING_NAMES[r.s]+'</span></td>'
-        +'<td>'+(r.avgT/1000).toFixed(1)+'s</td><td style="color:#E24B4A;">'+r.wrongs+'</td>'
-        +'<td>'+r.mastered+'/'+r.total+'</td><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+d+'"></span></td></tr>';
-    }).join('')+'</tbody></table>'
-    +'<div class="sec-lbl" style="margin-bottom:6px;margin-top:1rem;">Fret zones</div>'
-    +'<table class="sum-table"><thead><tr><th>Zone</th><th>Avg</th><th>Wrong</th><th></th></tr></thead><tbody>'
-    +zoneRows.map(function(z){ var d=zDot(z.avgT,z.wrongs,z.count);
-      return '<tr><td>Frets '+z.label+'</td><td>'+(z.avgT/1000).toFixed(1)+'s</td>'
-        +'<td style="color:#E24B4A;">'+z.wrongs+'</td><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+d+'"></span></td></tr>';
-    }).join('')+'</tbody></table>';
-
-  if (weakPos.length) {
-    html += '<div class="sec-lbl" style="margin-bottom:6px;margin-top:1rem;">Focus on these</div>'
-      +'<table class="sum-table"><thead><tr><th>Position</th><th>Note</th><th>Avg</th><th>Right/Wrong</th></tr></thead><tbody>'
-      +weakPos.map(function(k){
-        return '<tr><td>Str '+(k.s+1)+' Fr '+k.f+'</td><td style="font-weight:600;">'+pool[chromIdx(k.s,k.f)]+'</td>'
-          +'<td>'+(k.avgTime/1000).toFixed(1)+'s</td>'
-          +'<td><span style="color:#1D9E75;">'+k.correct+'</span>/<span style="color:#E24B4A;">'+k.wrong+'</span></td></tr>';
-      }).join('')+'</tbody></table>';
-  }
-  html += '<div style="display:flex;gap:14px;margin-top:1rem;font-size:11px;color:var(--text3);">'
-    +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D9E75;margin-right:4px;"></span>on track</span>'
-    +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#BA7517;margin-right:4px;"></span>slow</span>'
-    +'<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E24B4A;margin-right:4px;"></span>needs work</span></div>';
-  setHtml('summary-body', html);
-  el('summary-overlay').classList.add('open');
-}
-function hideSummary() { el('summary-overlay').classList.remove('open'); }
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION 17: COMPLETION
@@ -1203,7 +1247,7 @@ function showCompletion() {
     knowledge = makeKnowledge(); totalAsked = 0; totalCorrect = 0; totalTime = 0; currentStreak = 0;
     updateTopBar(); saveState(); startCountdown();
   });
-  mbtn('View summary', '#534AB7', function() { el('complete-overlay').classList.remove('open'); showSummary(); });
+  mbtn('View stats', '#534AB7', function() { el('complete-overlay').classList.remove('open'); showStats(); });
   mbtn('Expand scope', '#534AB7', function() { el('complete-overlay').classList.remove('open'); showSettings(); });
   if (expIdx < expOrder.length - 1) {
     var next = expOrder[expIdx + 1];
@@ -1241,6 +1285,8 @@ function switchTab(tab) {
   /* pause button only relevant during active practice */
   var pb = el('pause-btn');
   if (pb) pb.style.display = tab === 'practice' ? '' : 'none';
+  var spp = el('stats-practice-pills');
+  if (spp) spp.classList.toggle('show', tab === 'practice');
   if (tab === 'study') {
     /* pause any running quiz when switching to study */
     if (!answered && currentKey && !paused) togglePause();
@@ -1281,7 +1327,7 @@ function showHome() {
   if (currentModule === 'chords') exitChords();
   el('home-screen').classList.add('show');
   el('app').style.display = 'none';
-  ['settings-overlay','stats-overlay','summary-overlay','complete-overlay','countdown-overlay']
+  ['settings-overlay','stats-overlay','complete-overlay','countdown-overlay']
     .forEach(function(id){ el(id).classList.remove('open'); });
   clearInterval(timerInterval);
   clearTimeout(autoAdvanceTimer);
@@ -1303,12 +1349,12 @@ var TOUR_SLIDES = [
   {
     icon: '🤓',
     title: 'Welcome to Fretboard Notes',
-    body: 'You\'re looking at <b>Study mode</b> — the full fretboard with every note in your current range. Use ⚙ to filter by string and fret. Here\'s how the module works.'
+    body: 'You\'re looking at <b>Study mode</b> — the full fretboard with every note in your current range. Use <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:middle;margin:0 1px"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/><circle cx="7" cy="5" r="2" fill="var(--surface)"/><circle cx="13" cy="10" r="2" fill="var(--surface)"/><circle cx="7" cy="15" r="2" fill="var(--surface)"/></svg> to filter by string and fret. Here\'s how the module works.'
   },
   {
     icon: '📖',
     title: 'Start with Study Mode',
-    body: 'Tap <b>Study</b> to see all the notes laid out on the neck. Use the ⚙ settings to filter by string and fret range. Focus on a small area first — don\'t try to memorize the whole neck at once.'
+    body: 'Tap <b>Study</b> to see all the notes laid out on the neck. Use <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:middle;margin:0 1px"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/><circle cx="7" cy="5" r="2" fill="var(--surface)"/><circle cx="13" cy="10" r="2" fill="var(--surface)"/><circle cx="7" cy="15" r="2" fill="var(--surface)"/></svg> to filter by string and fret range. Focus on a small area first — don\'t try to memorize the whole neck at once.'
   },
   {
     icon: '⚡',
@@ -1378,6 +1424,8 @@ function endTour() {
 function launchModule(id) {
   if (id === 'notes') {
     currentModule = 'notes';
+    el('app').classList.remove('simple-module');
+    setText('topbar-module-name', 'Fretboard Notes');
     hideHome();
     pendingExp        = expLevel;
     pendingAccidental = accidentalMode;
@@ -1396,6 +1444,7 @@ function launchModule(id) {
     launchChords();
   } else if (id === 'fundamentals') {
     currentModule = 'fundamentals';
+    el('app').classList.add('simple-module');
     hideHome();
     /* hide the Fretboard-Notes-specific shell pieces; this module owns its own region */
     el('mode-tabs').style.display = 'none';

@@ -5,6 +5,7 @@ function exitFundamentals() {
   el('fundamentals-content').style.display = 'none';
   el('mode-tabs').style.display = '';
   el('stats-row').style.display = '';
+  el('app').classList.remove('simple-module');
   currentModule = null;
 }
 
