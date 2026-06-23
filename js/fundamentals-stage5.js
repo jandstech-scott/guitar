@@ -44,8 +44,8 @@ function fundRenderCircleSelectedInfo(key, cwKey, ccwKey) {
       '<div style="font-size:12px;color:var(--text2);margin-top:2px;">relative minor: <strong style="color:var(--teal-txt);">' + key.displayRelativeMinor + ' minor</strong></div>' +
     '</div>' +
     '<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:700;color:var(--text2);border-top:1px solid var(--border);padding-top:8px;">' +
-      '<div>\u2190 ' + ccwKey.displayKey + '<span style="display:block;font-size:9px;font-weight:400;color:var(--text3);">one fewer sharp / one more flat</span></div>' +
-      '<div>' + cwKey.displayKey + ' \u2192<span style="display:block;font-size:9px;font-weight:400;color:var(--text3);">one more sharp / one fewer flat</span></div>' +
+      '<div>\u2190 ' + ccwKey.displayKey + '<span style="display:block;font-size:12px;font-weight:400;color:var(--text2);">one fewer sharp / one more flat</span></div>' +
+      '<div>' + cwKey.displayKey + ' \u2192<span style="display:block;font-size:12px;font-weight:400;color:var(--text2);">one more sharp / one fewer flat</span></div>' +
     '</div>'
   );
 }

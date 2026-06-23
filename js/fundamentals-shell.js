@@ -12,10 +12,6 @@ function exitFundamentals() {
 function renderStageBar() {
   var bar = el('stage-bar');
   if (!bar) return;
-  var highestUnlocked = 1;
-  for (var j = 0; j < fundCompletedStages.length; j++) {
-    if (fundCompletedStages[j] + 1 > highestUnlocked) highestUnlocked = fundCompletedStages[j] + 1;
-  }
   var html = '';
   for (var i = 0; i < FUND_STAGES.length; i++) {
     var s = FUND_STAGES[i];
@@ -23,8 +19,7 @@ function renderStageBar() {
     var isActive = s.id === fundStage;
     var cls = isDone ? 'done' : isActive ? 'active' : 'locked';
     var symbol = isDone ? '\u2713' : s.id;
-    var locked = (s.id > highestUnlocked && !isDone && !isActive) ? 'true' : 'false';
-    html += '<button class="stage-dot-item ' + cls + '" onclick="goFundStage(' + s.id + ',' + locked + ')">'
+    html += '<button class="stage-dot-item ' + cls + '" onclick="goFundStage(' + s.id + ')">'
       + '<div class="stage-dot ' + cls + '">' + symbol + '</div>'
       + '<div class="stage-label">' + s.label + '</div>'
       + '</button>';
@@ -32,8 +27,7 @@ function renderStageBar() {
   bar.innerHTML = html;
 }
 
-function goFundStage(id, locked) {
-  if (locked) return;
+function goFundStage(id) {
   fundStage = id;
   if (id === 4) fundStage4SubPage = 1;
   renderStageBar();

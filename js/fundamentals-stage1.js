@@ -44,8 +44,8 @@ function fundBuildStringSVG(showStepLabels, showAllNotes) {
      than the prototype's custom palette, per the decision to match
      the app's existing theme. */
   var teal = '#1D9E75';
-  var textMuted = 'rgba(102,102,102,0.55)';
-  var stringColor = 'rgba(102,102,102,0.5)';
+  var textMuted = isDark() ? '#888' : '#999';
+  var stringColor = isDark() ? 'rgba(160,160,160,0.5)' : 'rgba(80,80,80,0.45)';
   var accidentalFill = 'rgba(102,102,102,0.22)';
   var accidentalText = '#666';
 
@@ -65,7 +65,7 @@ function fundBuildStringSVG(showStepLabels, showAllNotes) {
     svg += '<text x="' + x2 + '" y="' + (stringY + 20) + '" text-anchor="middle" font-size="9" fill="' + textMuted + '">' + f2 + '</text>';
   }
 
-  svg += '<text x="' + (nutX - 18) + '" y="' + (stringY + 4) + '" text-anchor="middle" font-size="12" font-weight="700" fill="rgba(102,102,102,0.6)">E</text>';
+  svg += '<text x="' + (nutX - 18) + '" y="' + (stringY + 4) + '" text-anchor="middle" font-size="12" font-weight="700" fill="' + textMuted + '">E</text>';
 
   var notesToShow = showAllNotes ? FUND_FRET_NOTES : FUND_FRET_NATURALS;
   for (var i = 0; i < notesToShow.length; i++) {

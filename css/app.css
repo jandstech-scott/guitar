@@ -298,7 +298,7 @@
       font-size: 19px; font-weight: 700; color: var(--text);
       margin-bottom: 6px; line-height: 1.2;
     }
-    .fund-body { font-size: 13px; color: var(--text2); line-height: 1.55; }
+    .fund-body { font-size: 14px; color: var(--text2); line-height: 1.55; }
     .fund-body strong { color: var(--text); }
 
     .fund-string-diagram {
@@ -306,14 +306,14 @@
       border-radius: var(--radius); padding: 12px 10px;
     }
     .fund-string-label {
-      font-size: 11px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.05em; color: var(--text3); text-align: center; margin-bottom: 8px;
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--text2); text-align: center; margin-bottom: 8px;
     }
     .fund-string-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .fund-string-wrap svg { min-width: 480px; }
     .fund-callout {
       background: var(--teal-lt); border: 1px solid var(--teal);
-      border-radius: 8px; padding: 9px 11px; font-size: 12px; color: var(--text2);
+      border-radius: 8px; padding: 9px 11px; font-size: 13px; color: var(--text2);
     }
     .fund-callout strong { color: var(--teal-txt); }
 
@@ -321,8 +321,8 @@
       display: flex; align-items: center; gap: 8px;
     }
     .fund-section-divider span {
-      font-size: 10px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.08em; color: var(--text3); white-space: nowrap;
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text2); white-space: nowrap;
     }
     .fund-section-divider::before, .fund-section-divider::after {
       content: ''; flex: 1; height: 1px; background: var(--border);
@@ -337,10 +337,10 @@
     }
     .fund-alpha-note:hover { border-color: var(--teal); color: var(--teal); }
     .fund-alpha-note.active { background: var(--teal); color: #fff; border-color: var(--teal); }
-    .fund-alpha-arrow { color: var(--text3); font-size: 13px; opacity: 0.6; }
+    .fund-alpha-arrow { color: var(--text2); font-size: 14px; }
     .fund-alpha-repeat {
-      font-size: 11px; font-weight: 600; color: var(--text3);
-      text-align: center; margin-top: 6px; opacity: 0.8;
+      font-size: 16px; font-weight: 600; color: var(--text);
+      text-align: center; margin-top: 6px;
     }
 
     .fund-step-note {
@@ -416,7 +416,7 @@
       border: 1px solid var(--border); text-align: center;
     }
     .fund-sig-count { font-size: 24px; font-weight: 800; color: var(--teal-txt); }
-    .fund-sig-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
+    .fund-sig-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); }
     .fund-sig-accidentals { margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--text); }
 
     /* construction UI for "Build the scale" */
@@ -469,24 +469,24 @@
     }
     .fund-sig-tab-btn.active { background: var(--teal); border-color: var(--teal); color: #fff; }
 
-    .fund-sig-table-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .fund-sig-table-label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
     .fund-sig-table-label.sharps { color: var(--text); }
     .fund-sig-table-label.flats { color: var(--teal-txt); }
     .fund-sig-table-row {
       display: grid; grid-template-columns: 24px 48px 24px 1fr; align-items: center; gap: 6px;
       padding: 7px 9px; border-radius: 7px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 3px;
     }
-    .fund-sig-table-pos { font-size: 10px; color: var(--text3); text-align: center; }
+    .fund-sig-table-pos { font-size: 12px; color: var(--text2); text-align: center; }
     .fund-sig-table-key { font-size: 13px; font-weight: 800; color: var(--text); }
-    .fund-sig-table-count { font-size: 12px; font-weight: 700; color: var(--text2); text-align: center; }
+    .fund-sig-table-count { font-size: 13px; font-weight: 700; color: var(--text2); text-align: center; }
     .fund-sig-table-accs { display: flex; gap: 4px; flex-wrap: wrap; }
-    .fund-sig-table-acc { font-size: 12px; font-weight: 700; padding: 1px 4px; border-radius: 4px; }
-    .fund-sig-table-acc.kept-acc-sharp, .fund-sig-table-acc.kept-acc-flat { color: var(--text3); }
+    .fund-sig-table-acc { font-size: 13px; font-weight: 700; padding: 1px 4px; border-radius: 4px; }
+    .fund-sig-table-acc.kept-acc-sharp, .fund-sig-table-acc.kept-acc-flat { color: var(--text2); }
     .fund-sig-table-acc.new-acc-sharp { color: var(--text); background: var(--border); }
     .fund-sig-table-acc.new-acc-flat { color: var(--teal-txt); background: var(--teal-lt); }
-    .fund-sig-table-acc.none { color: var(--text3); }
+    .fund-sig-table-acc.none { color: var(--text2); }
 
-    .fund-drill-progress { text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+    .fund-drill-progress { text-align: center; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
     .fund-predict-question { text-align: center; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
     .fund-predict-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
     .fund-predict-option {
@@ -501,7 +501,7 @@
     .fund-predict-feedback { text-align: center; font-size: 12px; min-height: 18px; }
 
     .fund-formula-compare-label {
-      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3);
+      font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); text-align: center;
     }
     .fund-minor-major-link {
       margin-top: 12px; padding: 10px 12px; border-radius: var(--radius); background: var(--bg); border: 1px solid var(--border);

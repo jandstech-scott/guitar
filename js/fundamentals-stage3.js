@@ -55,9 +55,9 @@ function fundStage3Study() {
       '<div class="fund-eyebrow">Enharmonic Equivalents</div>' +
       '<div class="fund-body" style="margin-bottom:10px;">Same pitch, two names. Which spelling you use depends on the key you\u2019re in \u2014 not the sound itself.</div>' +
       '<div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">' +
-        '<div style="text-align:center;"><div class="fund-enharm-pill" id="sharpPill">' + pair.sharp + '</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">sharp spelling</div></div>' +
+        '<div style="text-align:center;"><div class="fund-enharm-pill" id="sharpPill">' + pair.sharp + '</div><div style="font-size:13px;color:var(--text2);margin-top:4px;font-weight:600;">sharp spelling</div></div>' +
         '<div style="font-size:20px;font-weight:700;color:var(--text3);">=</div>' +
-        '<div style="text-align:center;"><div class="fund-enharm-pill" id="flatPill">' + pair.flat + '</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">flat spelling</div></div>' +
+        '<div style="text-align:center;"><div class="fund-enharm-pill" id="flatPill">' + pair.flat + '</div><div style="font-size:13px;color:var(--text2);margin-top:4px;font-weight:600;">flat spelling</div></div>' +
       '</div>' +
       '<div id="enharmCtx" style="font-size:12px;color:var(--text2);text-align:center;line-height:1.6;margin-top:10px;">' +
         'Moving <strong>up</strong> from ' + pair.from + ', the next pitch is <strong>' + pair.sharp + '</strong>. Moving <strong>down</strong> from ' + pair.to + ', that same pitch is <strong>' + pair.flat + '</strong>.' +

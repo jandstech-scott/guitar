@@ -871,9 +871,9 @@ function fundBuildCircleSVG(opts) {
   var teal = '#1D9E75';
   var copper = '#C87941'; /* used sparingly, only for the seam highlight */
   var green = '#3DA35D';
-  var muted = 'rgba(102,102,102,0.35)';
+  var muted = 'var(--text2)';
 
-  var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="display:block;max-width:320px;margin:0 auto;">';
+  var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="display:block;max-width:440px;margin:0 auto;">';
   svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="rgba(102,102,102,0.2)" stroke-width="1"/>';
   if (showMinors) svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + innerR + '" fill="none" stroke="rgba(102,102,102,0.15)" stroke-width="1"/>';
 
@@ -904,7 +904,7 @@ function fundBuildCircleSVG(opts) {
       var minorStroke = isSelected ? teal : 'rgba(102,102,102,0.3)';
       svg += '<g' + tapAttr + '>';
       svg += '<circle cx="' + ix + '" cy="' + iy + '" r="16" fill="' + minorFill + '" stroke="' + minorStroke + '" stroke-width="1.2"/>';
-      svg += '<text x="' + ix + '" y="' + (iy + 4) + '" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text2)" style="pointer-events:none;">' + key.displayRelativeMinor + 'm</text>';
+      svg += '<text x="' + ix + '" y="' + (iy + 4) + '" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text2)" style="pointer-events:none;">' + key.displayRelativeMinor + 'm</text>';
       svg += '</g>';
     }
   }
@@ -913,14 +913,14 @@ function fundBuildCircleSVG(opts) {
   var fsAngle = (fsIdx / n) * 2 * Math.PI - Math.PI / 2;
   var gbX = cx + (r + 36) * Math.cos(fsAngle);
   var gbY = cy + (r + 36) * Math.sin(fsAngle);
-  svg += '<text x="' + gbX + '" y="' + gbY + '" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text3)">= G\u266D major</text>';
+  svg += '<text x="' + gbX + '" y="' + gbY + '" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text2)">= G\u266D major</text>';
 
   if (!showMinors) {
-    svg += '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" font-size="11" font-weight="600" fill="' + muted + '">12 keys,</text>';
-    svg += '<text x="' + cx + '" y="' + (cy + 20) + '" text-anchor="middle" font-size="11" font-weight="600" fill="' + muted + '">one loop</text>';
+    svg += '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" font-size="13" font-weight="600" fill="' + muted + '">12 keys,</text>';
+    svg += '<text x="' + cx + '" y="' + (cy + 20) + '" text-anchor="middle" font-size="13" font-weight="600" fill="' + muted + '">one loop</text>';
   } else {
-    svg += '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" font-size="10" font-weight="600" fill="' + muted + '">outer: major</text>';
-    svg += '<text x="' + cx + '" y="' + (cy + 18) + '" text-anchor="middle" font-size="10" font-weight="600" fill="' + muted + '">inner: minor</text>';
+    svg += '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" font-size="12" font-weight="600" fill="' + muted + '">outer: major</text>';
+    svg += '<text x="' + cx + '" y="' + (cy + 18) + '" text-anchor="middle" font-size="12" font-weight="600" fill="' + muted + '">inner: minor</text>';
   }
 
   svg += '</svg>';

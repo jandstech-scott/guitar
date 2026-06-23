@@ -62,7 +62,7 @@ function fundStage4Page1() {
         '<div class="fund-formula-step whole">W</div><div class="fund-formula-step whole">W</div>' +
         '<div class="fund-formula-step half">H</div>' +
       '</div>' +
-      '<div class="fund-body" style="text-align:center;font-size:12px;">Apply this pattern from any starting note and you get that note\u2019s major scale.</div>' +
+      '<div class="fund-body" style="text-align:center;font-size:14px;">Apply this pattern from any starting note and you get that note\u2019s major scale.</div>' +
     '</div>' +
 
     '<div class="fund-section-divider"><span>Try it \u2014 pick a root</span></div>' +
@@ -211,7 +211,7 @@ function fundRenderListTab() {
     '<div class="fund-callout"><strong>Notice it stops at 6.</strong> F# major (6 sharps) and Db major (5 flats) are near the end of what\u2019s actually used. Flip to the Circle tab to see why a list has to stop somewhere.</div>' +
     '<div class="fund-lesson-card">' +
       '<div class="fund-eyebrow">Quick check \u2014 read the table directly</div>' +
-      '<div class="fund-body" style="font-size:11px;margin-bottom:8px;">Get all 6 right to unlock Start Practice below.</div>' +
+      '<div class="fund-body" style="font-size:13px;margin-bottom:8px;">Get all 6 right to unlock Start Practice below.</div>' +
       '<div id="fundStage4DrillArea">' + fundRenderDrillQuestion() + '</div>' +
     '</div>'
   );

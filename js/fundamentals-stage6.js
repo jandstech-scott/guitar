@@ -18,22 +18,22 @@ function fundStage6Study() {
 
     '<div class="fund-lesson-card">' +
       '<div class="fund-eyebrow">Two Formulas, Same Notes</div>' +
-      '<div class="fund-body" style="margin-bottom:8px;">Major and natural minor use different formulas. Starting from their own root, they land on the same 7 pitches \u2014 just in a different order.</div>' +
+      '<div class="fund-body" style="margin-bottom:14px;">Major and natural minor use different formulas. Starting from their own root, they land on the same 7 pitches \u2014 just in a different order.</div>' +
       '<div class="fund-formula-compare-label">Major</div>' +
-      '<div class="fund-formula-row" style="margin:4px 0 10px;">' +
+      '<div class="fund-formula-row" style="margin:6px 0 16px;">' +
         '<div class="fund-formula-step whole">W</div><div class="fund-formula-step whole">W</div>' +
         '<div class="fund-formula-step half">H</div><div class="fund-formula-step whole">W</div>' +
         '<div class="fund-formula-step whole">W</div><div class="fund-formula-step whole">W</div>' +
         '<div class="fund-formula-step half">H</div>' +
       '</div>' +
       '<div class="fund-formula-compare-label">Natural minor</div>' +
-      '<div class="fund-formula-row" style="margin:4px 0;">' +
+      '<div class="fund-formula-row" style="margin:6px 0 14px;">' +
         '<div class="fund-formula-step whole">W</div><div class="fund-formula-step half">H</div>' +
         '<div class="fund-formula-step whole">W</div><div class="fund-formula-step whole">W</div>' +
         '<div class="fund-formula-step half">H</div><div class="fund-formula-step whole">W</div>' +
         '<div class="fund-formula-step whole">W</div>' +
       '</div>' +
-      '<div class="fund-body" style="font-size:12px;margin-top:6px;">Notice the half steps land in different places \u2014 that\u2019s what gives minor its different character, even using the same notes as its relative major.</div>' +
+      '<div class="fund-body" style="font-size:13px;margin-top:4px;">Notice the half steps land in different places \u2014 that\u2019s what gives minor its different character, even using the same notes as its relative major.</div>' +
     '</div>' +
 
     '<div class="fund-section-divider"><span>Try it \u2014 pick a minor key</span></div>' +
