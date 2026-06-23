@@ -473,14 +473,14 @@
     .fund-sig-table-label.sharps { color: var(--text); }
     .fund-sig-table-label.flats { color: var(--teal-txt); }
     .fund-sig-table-row {
-      display: grid; grid-template-columns: 24px 48px 24px 1fr; align-items: center; gap: 6px;
-      padding: 7px 9px; border-radius: 7px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 3px;
+      display: grid; grid-template-columns: 18px 32px 18px 1fr; align-items: center; gap: 4px;
+      padding: 5px 6px; border-radius: 7px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 3px;
     }
-    .fund-sig-table-pos { font-size: 12px; color: var(--text2); text-align: center; }
+    .fund-sig-table-pos { font-size: 11px; color: var(--text2); text-align: center; }
     .fund-sig-table-key { font-size: 13px; font-weight: 800; color: var(--text); }
-    .fund-sig-table-count { font-size: 13px; font-weight: 700; color: var(--text2); text-align: center; }
-    .fund-sig-table-accs { display: flex; gap: 4px; flex-wrap: wrap; }
-    .fund-sig-table-acc { font-size: 13px; font-weight: 700; padding: 1px 4px; border-radius: 4px; }
+    .fund-sig-table-count { font-size: 12px; font-weight: 700; color: var(--text2); text-align: center; }
+    .fund-sig-table-accs { display: flex; gap: 3px; flex-wrap: wrap; }
+    .fund-sig-table-acc { font-size: 11px; font-weight: 700; padding: 1px 3px; border-radius: 4px; }
     .fund-sig-table-acc.kept-acc-sharp, .fund-sig-table-acc.kept-acc-flat { color: var(--text2); }
     .fund-sig-table-acc.new-acc-sharp { color: var(--text); background: var(--border); }
     .fund-sig-table-acc.new-acc-flat { color: var(--teal-txt); background: var(--teal-lt); }
@@ -539,10 +539,10 @@
     .fq-streak { font-size: 10px; font-weight: 700; color: var(--teal); white-space: nowrap; }
 
     .fq-progress-row { display: flex; align-items: center; gap: 8px; }
-    .fq-progress-label { font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--text3); white-space: nowrap; }
+    .fq-progress-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text2); white-space: nowrap; }
     .fq-progress-track { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
     .fq-progress-fill { height: 100%; background: var(--teal); transition: width 0.3s; }
-    .fq-progress-count { font-size: 10px; color: var(--text2); white-space: nowrap; }
+    .fq-progress-count { font-size: 12px; color: var(--text2); white-space: nowrap; }
 
     .fq-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .fq-answer-btn {

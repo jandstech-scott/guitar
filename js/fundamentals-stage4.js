@@ -163,7 +163,7 @@ function fundCheckReadSig() {
 
 /* Page 3: key signatures, list and circle tabs, plus a reading drill */
 var FUND_SHARP_TABLE_KEYS = ['C', 'G', 'D', 'A', 'E', 'B', 'F#'];
-var FUND_FLAT_TABLE_KEYS  = ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db'];
+var FUND_FLAT_TABLE_KEYS  = ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb'];
 var fundStage4SigTab = 'list';
 var fundStage4DrillQuestion = null;
 var fundStage4DrillAnswered = false;
@@ -200,15 +200,17 @@ function fundSwitchSigTab(tab) {
 
 function fundRenderListTab() {
   return (
-    '<div class="fund-lesson-card">' +
-      '<div class="fund-sig-table-label sharps">Sharp keys</div>' +
-      '<div id="fundSigTableSharps">' + fundRenderSigTable(FUND_SHARP_TABLE_KEYS, 'sharp') + '</div>' +
+    '<div style="display:flex;gap:10px;align-items:flex-start;">' +
+      '<div class="fund-lesson-card" style="flex:1;min-width:0;">' +
+        '<div class="fund-sig-table-label flats">Flat keys</div>' +
+        '<div id="fundSigTableFlats">' + fundRenderSigTable(FUND_FLAT_TABLE_KEYS, 'flat') + '</div>' +
+      '</div>' +
+      '<div class="fund-lesson-card" style="flex:1;min-width:0;">' +
+        '<div class="fund-sig-table-label sharps">Sharp keys</div>' +
+        '<div id="fundSigTableSharps">' + fundRenderSigTable(FUND_SHARP_TABLE_KEYS, 'sharp') + '</div>' +
+      '</div>' +
     '</div>' +
-    '<div class="fund-lesson-card">' +
-      '<div class="fund-sig-table-label flats">Flat keys</div>' +
-      '<div id="fundSigTableFlats">' + fundRenderSigTable(FUND_FLAT_TABLE_KEYS, 'flat') + '</div>' +
-    '</div>' +
-    '<div class="fund-callout"><strong>Notice it stops at 6.</strong> F# major (6 sharps) and Db major (5 flats) are near the end of what\u2019s actually used. Flip to the Circle tab to see why a list has to stop somewhere.</div>' +
+    '<div class="fund-callout"><strong>Notice it stops at 6.</strong> F# major (6 sharps) and G\u266d major (6 flats) are enharmonic twins \u2014 the same pitches, two spellings. Flip to the Circle tab to see why they meet at the bottom.</div>' +
     '<div class="fund-lesson-card">' +
       '<div class="fund-eyebrow">Quick check \u2014 read the table directly</div>' +
       '<div class="fund-body" style="font-size:13px;margin-bottom:8px;">Get all 6 right to unlock Start Practice below.</div>' +

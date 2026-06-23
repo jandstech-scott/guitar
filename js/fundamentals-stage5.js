@@ -12,7 +12,7 @@ function fundStage5Study() {
     '<div class="fund-lesson-card">' +
       '<div class="fund-eyebrow">Stage 5 \u00B7 The Circle of Fifths</div>' +
       '<div class="fund-title">One map. Every key.</div>' +
-      '<div class="fund-body">You\u2019ve already built this circle in Stage 4 \u2014 sharps clockwise, flats counter-clockwise. Now it does two more jobs: showing you each key\u2019s <strong>relative minor</strong>, and showing how far apart any two keys really are.</div>' +
+      '<div class="fund-body">You\u2019ve already built this circle in Stage 4 \u2014 sharps clockwise, flats counter-clockwise. Going clockwise is called going <strong>above</strong> on the circle; counter-clockwise is going <strong>below</strong>. The circle also shows each key\u2019s <strong>relative minor</strong> and how far apart any two keys really are.</div>' +
     '</div>' +
 
     '<div class="fund-lesson-card">' +
@@ -25,12 +25,34 @@ function fundStage5Study() {
 
     '<div class="fund-lesson-card">' +
       '<div class="fund-eyebrow">Relative Minors</div>' +
-      '<div class="fund-body">Every major key has a relative minor \u2014 same key signature, same notes, different home note. It\u2019s always scale degree 6 of the major scale. ' + key.displayKey + ' major\u2019s 6th note is <strong>' + key.displayRelativeMinor + '</strong> \u2014 so ' + key.displayRelativeMinor + ' minor is its relative minor.</div>' +
+      '<div class="fund-body">Every major key has a relative minor \u2014 same key signature, same notes, different home note. It\u2019s always scale degree 6 of the major scale.</div>' +
+      '<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;justify-content:center;margin:10px 0;">' +
+        key.scale.map(function(n, i) {
+          var isMinorRoot = (i === 5);
+          return '<div style="min-width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;' +
+            (isMinorRoot
+              ? 'background:var(--teal);color:#fff;border:2px solid var(--teal);'
+              : 'background:var(--surface);color:var(--text);border:1px solid var(--border);') +
+            '">' + n.replace('b','\u266d').replace('#','\u266f') + '</div>';
+        }).join('<div style="font-size:11px;color:var(--text3);">-</div>') +
+      '</div>' +
+      '<div class="fund-body">' + key.displayKey + ' major\u2019s 6th note is <strong style="color:var(--teal-txt);">' + key.displayRelativeMinor + '</strong> \u2014 so ' + key.displayRelativeMinor + ' minor shares the exact same key signature as ' + key.displayKey + ' major.</div>' +
     '</div>' +
 
     '<div class="fund-lesson-card">' +
       '<div class="fund-eyebrow">Distance on the Circle</div>' +
-      '<div class="fund-body">Neighboring keys on the circle differ by exactly one sharp or flat \u2014 they\u2019re close relatives. Keys directly across the circle from each other share almost nothing. Counting steps around the circle between two keys tells you exactly how many accidentals separate them.</div>' +
+      '<div class="fund-body">Neighboring keys on the circle differ by exactly one sharp or flat \u2014 they\u2019re close relatives. Keys directly across from each other share almost nothing.</div>' +
+      '<div style="margin:10px 0;display:flex;flex-direction:column;gap:8px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);">' +
+          '<div style="font-size:15px;font-weight:800;color:var(--teal-txt);white-space:nowrap;">C \u2192 G</div>' +
+          '<div style="font-size:13px;color:var(--text2);">G is one fifth <strong>above</strong> C \u2014 1 step clockwise. They differ by just one note (F\u266f).</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);">' +
+          '<div style="font-size:15px;font-weight:800;color:var(--text);white-space:nowrap;">C \u2192 F\u266f</div>' +
+          '<div style="font-size:13px;color:var(--text2);">F\u266f is 6 steps <strong>above</strong> C \u2014 opposite sides of the circle. Only 1 note in common.</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="fund-body">Counting steps between any two keys tells you exactly how many accidentals separate them.</div>' +
     '</div>' +
 
     '<button class="fund-cta-btn" onclick="fundStartPractice(5)">Start Practice \u2192</button>'
@@ -44,8 +66,8 @@ function fundRenderCircleSelectedInfo(key, cwKey, ccwKey) {
       '<div style="font-size:12px;color:var(--text2);margin-top:2px;">relative minor: <strong style="color:var(--teal-txt);">' + key.displayRelativeMinor + ' minor</strong></div>' +
     '</div>' +
     '<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;font-weight:700;color:var(--text2);border-top:1px solid var(--border);padding-top:8px;">' +
-      '<div>\u2190 ' + ccwKey.displayKey + '<span style="display:block;font-size:12px;font-weight:400;color:var(--text2);">one fewer sharp / one more flat</span></div>' +
-      '<div>' + cwKey.displayKey + ' \u2192<span style="display:block;font-size:12px;font-weight:400;color:var(--text2);">one more sharp / one fewer flat</span></div>' +
+      '<div>\u2190 ' + ccwKey.displayKey + '<span style="display:block;font-size:12px;font-weight:600;color:var(--teal-txt);">one fifth below</span><span style="display:block;font-size:11px;font-weight:400;color:var(--text2);">counter-clockwise \u00b7 one more flat</span></div>' +
+      '<div style="text-align:right;">' + cwKey.displayKey + ' \u2192<span style="display:block;font-size:12px;font-weight:600;color:var(--teal-txt);">one fifth above</span><span style="display:block;font-size:11px;font-weight:400;color:var(--text2);">clockwise \u00b7 one more sharp</span></div>' +
     '</div>'
   );
 }

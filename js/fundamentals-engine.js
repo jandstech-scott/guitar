@@ -51,7 +51,6 @@ function fundRenderPracticeQuestion() {
     '<div class="fq-progress-row">' +
       '<div class="fq-progress-label">' + progressLabel + '</div>' +
       '<div class="fq-progress-track"><div class="fq-progress-fill" style="width:' + Math.min(100, (progressNum / progressTarget) * 100) + '%"></div></div>' +
-      '<div class="fq-progress-count">' + progressNum + '/' + progressTarget + '</div>' +
     '</div>';
 
   if (q.constructionType) {
@@ -99,7 +98,8 @@ function fundRenderConstructSlots(q) {
     var tapAttr = (filled !== undefined) ? (' onclick="fundClearConstructionSlot(' + i + ')"') : '';
     slots += '<div class="fq-construct-slot ' + (filled ? 'filled' : '') + (i === 0 ? ' root-slot' : '') + '"' + tapAttr + '>' + (filled || '') + '</div>';
     if (i < q.correctSequence.length - 1) {
-      var isHalf = FUND_MAJOR_SCALE_FORMULA[i] === 1;
+      var formula = (q.constructionType === 'minorScale') ? FUND_MINOR_SCALE_FORMULA : FUND_MAJOR_SCALE_FORMULA;
+      var isHalf = formula[i] === 1;
       slots += '<div class="fq-formula-connector ' + (isHalf ? 'half' : 'whole') + '">' + (isHalf ? 'H' : 'W') + '</div>';
     }
   }
@@ -310,7 +310,8 @@ function fundRenderUnlockIntroScreen(typeIdx) {
   }
 
   var optionsHtml = preview.options.map(function(opt) {
-    return '<div class="fq-answer-btn" style="cursor:default;">' + opt + '</div>';
+    var isCorrect = opt === preview.correct;
+    return '<div class="fq-answer-btn' + (isCorrect ? ' correct' : '') + '" style="cursor:default;">' + opt + '</div>';
   }).join('');
 
   c.innerHTML =
@@ -341,21 +342,22 @@ function fundConfirmUnlock() {
 function fundRenderSpeedNudgeScreen() {
   var c = el('fundamentals-content');
   var cfg = fundActiveConfig();
-  var avg = fundAverageRecentTime(cfg.masteryStreak);
+  var streak = cfg.masteryStreak || cfg.totalKeys || 10;
+  var avg = fundAverageRecentTime(streak);
   var avgSecs = (avg / 1000).toFixed(1);
 
   c.innerHTML =
     '<div class="fund-lesson-card" style="text-align:center;padding:24px 20px;">' +
       '<div style="font-size:30px;margin-bottom:8px;">\u23F1</div>' +
       '<div class="fund-eyebrow" style="justify-content:center;">You know this \u2014 it\u2019s just not automatic yet</div>' +
-      '<div class="fund-title" style="font-size:18px;">' + cfg.masteryStreak + ' for ' + cfg.masteryStreak + '. Averaging ' + avgSecs + 's.</div>' +
-      '<div class="fund-body" style="margin-top:6px;">You\u2019re getting every one right, but you\u2019re still thinking it through. A few more rounds and this should start feeling automatic.</div>' +
+      '<div class="fund-body" style="margin-top:6px;">You\u2019re getting them right, but averaging ' + avgSecs + 's. A few more rounds and this should start feeling automatic.</div>' +
     '</div>' +
     '<button class="fund-cta-btn" onclick="fundContinueDrilling()">Keep drilling \u2192</button>';
 }
 
 function fundContinueDrilling() {
   FUND_QUIZ.consecutiveCorrect = 0;
+  FUND_QUIZ.attempts = [];
   fundRenderPracticeQuestion();
 }
 
@@ -386,7 +388,7 @@ function fundRenderModuleCompletion() {
       '<div style="font-size:40px;margin-bottom:12px;">\u{1F3B8}</div>' +
       '<div class="fund-eyebrow" style="justify-content:center;">Module Complete</div>' +
       '<div class="fund-title">You\u2019ve got the foundation.<br>Time to put it on the fretboard.</div>' +
-      '<div class="fund-body" style="margin-top:8px;">Stage 1 is fully ported. Stages 2\u20136 are next.</div>' +
+      '<div class="fund-body" style="margin-top:8px;">All six stages complete. Everything else in the app builds on what you just learned.</div>' +
     '</div>' +
     '<button class="fund-cta-btn" onclick="showHome()">Back to Home</button>';
 }

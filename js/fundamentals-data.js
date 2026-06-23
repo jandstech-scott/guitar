@@ -59,7 +59,7 @@ var FUND_STAGE_CONFIG = {
   2: {
     masteryStreak: 12,
     speedThreshold: 4000,
-    typeLabels: ['Identify the interval', 'Find the note', 'Guitar string'],
+    typeLabels: ['Identify the interval', 'Find the note'],
     generate: fundGenerateStage2Question
   },
   3: {
@@ -109,7 +109,7 @@ var FUND_MASTERY_COPY = {
   },
   4: {
     title: 'All 12 keys. Locked in.',
-    body: 'Every major key, built from the same formula, fast and accurate. Stages 5 (Circle of Fifths) and 6 (Minor Scales) are next once ported.'
+    body: 'Every major key, built from the same formula, fast and accurate. Stage 5 — the Circle of Fifths — is next.'
   },
   5: {
     title: 'The whole map. Locked in.',
@@ -341,33 +341,10 @@ function fundS2GenFindTheNote() {
   };
 }
 
-function fundS2GenGuitarString() {
-  var pairs = fundWholeStepNaturalPairs();
-  var forward = Math.random() > 0.5;
-  var pick = pairs[Math.floor(Math.random() * pairs.length)];
-  var startNoteName = forward ? pick[0] : pick[1];
-  var correct = forward ? pick[1] : pick[0];
-  var startFret = null;
-  for (var i = 0; i < FUND_FRET_NATURALS.length; i++) {
-    if (FUND_FRET_NATURALS[i].note === startNoteName) { startFret = FUND_FRET_NATURALS[i]; break; }
-  }
-  var distractors = FUND_NATURALS.filter(function(n) { return n !== correct && n !== startNoteName; });
-  var options = fundShuffle([correct].concat(fundSample(distractors, 3)));
-  return {
-    typeIdx: 2,
-    typeLabel: 'Guitar string',
-    prompt: 'Starting at fret ' + startFret.fret + ' (' + startNoteName + ') on the low E string, go one whole step ' + (forward ? 'up' : 'down') + '.',
-    sub: 'What note do you land on?',
-    options: options,
-    correct: correct
-  };
-}
-
 function fundGenerateStage2Question(forcedType) {
   var t = fundPickActiveType(forcedType);
   if (t === 0) return fundS2GenIdentifyInterval();
-  if (t === 1) return fundS2GenFindTheNote();
-  return fundS2GenGuitarString();
+  return fundS2GenFindTheNote();
 }
 
 /* ── Stage 3: Sharps, Flats & Enharmonics ── */
@@ -508,7 +485,8 @@ var FUND_KEY_SIGNATURES_RAW = [
   { key: 'Bb', sharps: 0, flats: 2 },
   { key: 'Eb', sharps: 0, flats: 3 },
   { key: 'Ab', sharps: 0, flats: 4 },
-  { key: 'Db', sharps: 0, flats: 5 }
+  { key: 'Db', sharps: 0, flats: 5 },
+  { key: 'Gb', sharps: 0, flats: 6 }
 ];
 
 var FUND_SHARP_ORDER = ['F#','C#','G#','D#','A#','E#','B#'];
@@ -893,8 +871,12 @@ function fundBuildCircleSVG(opts) {
     var tapAttr = (interactive && onTapHandler) ? (' style="cursor:pointer;" onclick="' + onTapHandler + '(\'' + root + '\')"') : '';
 
     svg += '<g' + tapAttr + '>';
+    var count = key.sharps || key.flats || 0;
+    var countStr = key.sharps > 0 ? (key.sharps + '♯') : key.flats > 0 ? (key.flats + '♭') : '';
+    var countColor = (isSelected || isSeam) ? '#fff' : key.sharps > 0 ? copper : key.flats > 0 ? green : textColor;
     svg += '<circle cx="' + x + '" cy="' + y + '" r="22" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.5"/>';
-    svg += '<text x="' + x + '" y="' + (y + 5) + '" text-anchor="middle" font-size="14" font-weight="800" fill="' + textColor + '" style="pointer-events:none;">' + key.displayKey + '</text>';
+    svg += '<text x="' + x + '" y="' + (count > 0 ? y + 1 : y + 5) + '" text-anchor="middle" font-size="14" font-weight="800" fill="' + textColor + '" style="pointer-events:none;">' + key.displayKey + '</text>';
+    if (count > 0) svg += '<text x="' + x + '" y="' + (y + 13) + '" text-anchor="middle" font-size="9" font-weight="700" fill="' + countColor + '" style="pointer-events:none;">' + countStr + '</text>';
     svg += '</g>';
 
     if (showMinors) {
