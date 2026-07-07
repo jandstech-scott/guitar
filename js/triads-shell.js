@@ -75,10 +75,9 @@ function triadsRenderStageBar() {
 }
 
 function goTriadsStage(id) {
-  triadsStage           = id;
-  TRIAD_STUDY_SET       = triadsStageSetMap()[id];
-  TRIAD_STUDY_INVERSION = 0;
-  triadsMode            = 'study';
+  triadsStage     = id;
+  TRIAD_STUDY_SET = triadsStageSetMap()[id];
+  triadsMode      = 'study';
   triadsRenderStageBar();
   triadsRenderContent();
 }
