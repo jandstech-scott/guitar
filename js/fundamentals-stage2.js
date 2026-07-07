@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 /* ── Stage 2: Whole & Half Steps — Study content ── */
 function fundStage2Study() {
   var rowHtml = '';

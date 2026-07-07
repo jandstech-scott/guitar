@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 /* ── Stage 5: The Circle of Fifths — Study content ── */
 var fundStage5SelectedRoot = 'C';
 

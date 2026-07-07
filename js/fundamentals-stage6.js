@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 /* ── Stage 6: Natural Minor Scales — Study content ── */
 var fundStage6SelectedRoot = 'A'; /* A minor — relative minor of C, simplest starting point */
 

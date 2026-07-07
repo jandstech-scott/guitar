@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 /* ── Stage 3: Sharps, Flats & Enharmonics — Study content ── */
 var FUND_CHROMATIC_DISPLAY = [
   { name: 'A',  type: 'natural' }, { name: 'A#/B\u266D', type: 'acc' },

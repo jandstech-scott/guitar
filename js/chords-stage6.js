@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 function chordsStage6Study() {
   var rows = CHORD_TYPES.map(function(t) {
     return '<tr>' +

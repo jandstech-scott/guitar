@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 /* ── Stage 4: Keys & Key Signatures — 3-page Study sub-navigation ── */
 var fundStage4SubPage = 1;
 var FUND_STAGE4_PAGE_COUNT = 3;

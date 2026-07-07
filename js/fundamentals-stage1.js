@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 function fundStage1Study() {
   var alphaHtml = '';
   for (var i = 0; i < FUND_NATURALS.length; i++) {

@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 /* Music Fundamentals module state — separate from Fretboard Notes' instrument-keyed state */
 var currentModule = null;   // null | 'notes' | 'fundamentals'
 var fundStage     = 1;      // 1-6, current Music Fundamentals stage

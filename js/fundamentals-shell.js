@@ -1,3 +1,9 @@
+/************************************************************
+ * FretNerd
+ * Copyright (c) 2026 Scott Farris / Tilted Iron
+ * Proprietary and confidential. Unauthorized use prohibited.
+ ************************************************************/
+
 function exitFundamentals() {
   /* restore the shell pieces this module hid, so returning to Fretboard
      Notes (or any future module reusing the same shell) isn't left broken */
